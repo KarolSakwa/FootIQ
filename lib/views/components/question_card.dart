@@ -3,26 +3,6 @@ import 'package:footix/contants.dart';
 import 'answer_button.dart';
 
 class QuestionCard extends StatelessWidget {
-  String questionText,
-      answerA,
-      answerB,
-      answerC,
-      answerD,
-      correctAnswer,
-      imageSrc = 'assets/question_images/cash.jpg';
-
-  // constructor
-  QuestionCard(
-      {Key? key,
-      required this.questionText,
-      required this.answerA,
-      required this.answerB,
-      required this.answerC,
-      required this.answerD,
-      required this.correctAnswer,
-      this.imageSrc = 'assets/question_images/cash.jpg'})
-      : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -33,6 +13,8 @@ class QuestionCard extends StatelessWidget {
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              // IMAGE SECTION
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -46,7 +28,7 @@ class QuestionCard extends StatelessWidget {
                             padding: const EdgeInsets.all(5),
                             child: Column(
                               children: [
-                                Image.asset(imageSrc,
+                                Image.asset('imageSrc',
                                     height: MediaQuery.of(context).size.height *
                                         0.25), // gives me 100% of container's height
                               ],
@@ -58,6 +40,9 @@ class QuestionCard extends StatelessWidget {
                   )
                 ],
               ),
+
+              // QUESTION TEXT
+
               Padding(
                   padding: const EdgeInsets.only(top: 10.0),
                   child: Expanded(
@@ -69,8 +54,8 @@ class QuestionCard extends StatelessWidget {
                             color: kMainLightColor,
                             child: Padding(
                               padding: const EdgeInsets.all(10.0),
-                              child:
-                                  Text(questionText, style: kQuestionTextStyle),
+                              child: Text('questionText',
+                                  style: kQuestionTextStyle),
                             ),
                           ),
                         )
@@ -79,6 +64,9 @@ class QuestionCard extends StatelessWidget {
                   )),
             ],
           ),
+
+          // ANSWER BUTTONS
+
           Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -106,11 +94,5 @@ class QuestionCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  @override
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    throw UnimplementedError();
   }
 }

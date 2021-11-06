@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
-import 'screens/welcome_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/registration_screen.dart';
-import 'screens/quick_challenge_screen.dart';
+import 'views/welcome_screen.dart';
+import 'views/login_screen.dart';
+import 'views/registration_screen.dart';
+import 'views/quick_challenge_screen.dart';
 
 void main() {
   runApp(FootiX9());
