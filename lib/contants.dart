@@ -5,7 +5,7 @@ const kAppName = 'FootiX9';
 // color palette
 const kMainDarkColor = Color(0xff112031);
 const kMainLightColor = Color(0xffd4ecdd);
-const kMainMediumColor = Color(0xff345b63);
+const kMainMediumColor = Color(0xff7facb4);
 const kMainGreyColor = Color(0xff717575);
 
 const kWelcomeScreenTitleTextStyle = TextStyle(
