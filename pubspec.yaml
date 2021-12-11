@@ -13,6 +13,10 @@ dependencies:
 
   cupertino_icons: ^1.0.2
   provider: ^6.0.1
+  firebase_core: "0.7.0"
+  firebase_auth: "^0.20.1"
+  cloud_firestore: "^0.16.0"
+  web_scraper:
 
 dev_dependencies:
   flutter_test:

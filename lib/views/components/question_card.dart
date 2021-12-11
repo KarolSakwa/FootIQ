@@ -5,15 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:footix/models/question.dart';
 import 'package:footix/controllers/question_controller.dart';
-import 'package:footix/models/question.dart';
-import 'package:provider/provider.dart';
-import 'disappearing_alert_dialog.dart';
-
-//TODO:
-// handle running out of questions exception
+import 'package:footix/models/question_base.dart';
+import 'package:footix/views/score_screen.dart';
 
 QuestionController questionController = QuestionController();
 Question currentQuestion = questionController.getNextQuestion();
+
+int maxQuestionNum = QuestionBase().questionList.length;
+List<Question> answeredQuestionList = [];
 
 class QuestionCard extends StatefulWidget {
   const QuestionCard({Key? key}) : super(key: key);
@@ -33,18 +32,19 @@ class _QuestionCardState extends State<QuestionCard> {
     backgroundColor: MaterialStateProperty.all<Color>(Colors.greenAccent),
   );
 
-  String selectedAnswer = '';
-
   void updateState(answerText) {
-    // sprawdzam czy coś jest już zaznaczone, jeśli tak - nie można zaznaczać
     setState(() {
-      selectedAnswer = answerText;
-      if (answerText == currentQuestion.getCorrectAnswer())
-        correctAnswerActions();
-      else {
-        inCorrectAnswerActions();
-      }
+      currentQuestion.setUserAnswer(answerText);
+      Future.delayed(Duration(milliseconds: 0), () {
+        // 3000?
+        if (answerText == currentQuestion.getCorrectAnswer())
+          correctAnswerActions();
+        else {
+          inCorrectAnswerActions();
+        }
+      });
     });
+    answeredQuestionList.add(currentQuestion);
   }
 
   void correctAnswerActions() {
@@ -62,9 +62,20 @@ class _QuestionCardState extends State<QuestionCard> {
             child: TextButton(
               onPressed: () {
                 setState(() {
-                  nextQuestion();
+                  Navigator.pop(context);
+                  if (questionController.questionNum <
+                      questionController.questionList.length)
+                    currentQuestion = questionController.getNextQuestion();
+                  else {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScoreScreen(
+                              userAnsweredQuestionList: answeredQuestionList),
+                        ));
+                    //Navigator.pushNamed(context, ScoreScreen.id);
+                  }
                 });
-                Navigator.pop(context);
               },
               child: const Text('OK'),
             ),
@@ -75,25 +86,36 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   void inCorrectAnswerActions() {
-    showDialog<String>(
+    showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: const Text(
-          'Incorrect! : <',
-          style: TextStyle(color: Colors.red),
+        title: Center(
+          child: const Text(
+            'Incorrect! : <',
+            style: TextStyle(color: Colors.red),
+          ),
         ),
         actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'OK'),
-            child: const Text('OK'),
+          Center(
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  if (questionController.questionNum <
+                      questionController.questionList.length) {
+                    currentQuestion = questionController.getNextQuestion();
+                  } else {
+                    Navigator.pushNamed(context, ScoreScreen.id,
+                        arguments: answeredQuestionList);
+                  }
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
           ),
         ],
       ),
     );
-  }
-
-  void nextQuestion() {
-    currentQuestion = questionController.getNextQuestion();
   }
 
   @override
@@ -173,7 +195,8 @@ class _QuestionCardState extends State<QuestionCard> {
                         onPressed: () {
                           updateState(currentQuestion.getAnswerA());
                         },
-                        style: selectedAnswer == currentQuestion.getAnswerA()
+                        style: currentQuestion.getUserAnswer() ==
+                                currentQuestion.getAnswerA()
                             ? selectedButtonStyle
                             : initialButtonStyle,
                         child: Text(
@@ -197,7 +220,8 @@ class _QuestionCardState extends State<QuestionCard> {
                         onPressed: () {
                           updateState(currentQuestion.getAnswerB());
                         },
-                        style: selectedAnswer == currentQuestion.getAnswerB()
+                        style: currentQuestion.getUserAnswer() ==
+                                currentQuestion.getAnswerB()
                             ? selectedButtonStyle
                             : initialButtonStyle,
                         child: Text(
@@ -223,7 +247,8 @@ class _QuestionCardState extends State<QuestionCard> {
                         onPressed: () {
                           updateState(currentQuestion.getAnswerC());
                         },
-                        style: selectedAnswer == currentQuestion.getAnswerC()
+                        style: currentQuestion.getUserAnswer() ==
+                                currentQuestion.getAnswerC()
                             ? selectedButtonStyle
                             : initialButtonStyle,
                         child: Text(
@@ -247,7 +272,8 @@ class _QuestionCardState extends State<QuestionCard> {
                         onPressed: () {
                           updateState(currentQuestion.getAnswerD());
                         },
-                        style: selectedAnswer == currentQuestion.getAnswerD()
+                        style: currentQuestion.getUserAnswer() ==
+                                currentQuestion.getAnswerD()
                             ? selectedButtonStyle
                             : initialButtonStyle,
                         child: Text(

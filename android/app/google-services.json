@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "977737831241",
+    "project_id": "test-494bb",
+    "storage_bucket": "test-494bb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:977737831241:android:5d47f7d93c8a1b0009c098",
+        "android_client_info": {
+          "package_name": "pracislaw.footix"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "977737831241-6fk4784l5q3jm1ddm0eca03vmhp79h7s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6aPAe34a2rf5USWDTcdFG3VZIxlbPiQc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "977737831241-6fk4784l5q3jm1ddm0eca03vmhp79h7s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

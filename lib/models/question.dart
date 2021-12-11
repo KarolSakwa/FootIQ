@@ -5,16 +5,20 @@ class Question {
       _answerB = '',
       _answerC = '',
       _answerD = '',
-      _correctAnswer = '';
+      _correctAnswer = '',
+      _userAnswer = '',
+      _questionCategory = '';
 
   Question(
       {String imgSrc = '',
+      String questionCategory = '',
       required String questionText,
       required String answerA,
       required String answerB,
       required String answerC,
       required String answerD,
-      required String correctAnswer}) {
+      required String correctAnswer,
+      String userAnswer = ''}) {
     this._imgSrc = imgSrc;
     this._questionText = questionText;
     this._answerA = answerA;
@@ -22,6 +26,8 @@ class Question {
     this._answerC = answerC;
     this._answerD = answerD;
     this._correctAnswer = correctAnswer;
+    this._userAnswer = userAnswer;
+    this._questionCategory = questionCategory;
   }
 
   String getImgSrc() {
@@ -50,5 +56,17 @@ class Question {
 
   String getCorrectAnswer() {
     return _correctAnswer;
+  }
+
+  String getUserAnswer() {
+    return _userAnswer;
+  }
+
+  String getQuestionCategory() {
+    return _questionCategory;
+  }
+
+  setUserAnswer(userAnswer) {
+    this._userAnswer = userAnswer;
   }
 }

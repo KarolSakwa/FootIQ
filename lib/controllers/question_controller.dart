@@ -1,14 +1,18 @@
+import 'package:flutter/material.dart';
 import 'package:footix/models/question.dart';
 import 'package:footix/models/question_base.dart';
 
+import '../contants.dart';
+
 class QuestionController {
   int questionNum = 0;
-  int _maxQuestionNum = 15;
   List<Map> questionList = QuestionBase().questionList;
 
-  Question getNextQuestion() {
+  getNextQuestion() {
+    // Question yuahu = getNextQuestion2();
+    // print(yuahu.getAnswerA());
     // HERE IS WHERE I AM GOING TO RETRIEVE THE DATA FROM DB
-    if (questionNum < _maxQuestionNum) {
+    if (questionNum < questionList.length) {
       Map selectedQuestion = questionList[questionNum];
       Question currentQuestion = Question(
           questionText: selectedQuestion['questionText'],
@@ -21,6 +25,30 @@ class QuestionController {
       questionNum++;
       return currentQuestion;
     }
-    throw Exception('There\'s no more questions left!');
+  }
+
+  getNextQuestion2() async {
+    List<Map> yu;
+    Question currentQuestion = Question(
+        questionText: 'questionText',
+        answerA: 'answerA',
+        answerB: 'answerB',
+        answerC: 'answerC',
+        answerD: 'answerD',
+        correctAnswer: 'correctAnswer');
+    if (questionNum < questionList.length) {
+      yu = await QuestionBase().getQuestionList();
+      currentQuestion = Question(
+          questionText: yu[0]['questionText'],
+          answerA: yu[0]['answerA'],
+          answerB: yu[0]['answerB'],
+          answerC: yu[0]['answerC'],
+          answerD: yu[0]['answerD'],
+          correctAnswer: yu[0]['correctAnswer'],
+          imgSrc: yu[0]['imgSrc']);
+      questionNum++;
+      return currentQuestion;
+    }
+    return currentQuestion;
   }
 }

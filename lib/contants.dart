@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 const kAppName = 'FootiX9';
 
 // color palette
-const kMainDarkColor = Color(0xff112031);
+const kMainDarkColor = Color(0xff0b1724);
 const kMainLightColor = Color(0xffd4ecdd);
 const kMainMediumColor = Color(0xff7facb4);
 const kMainGreyColor = Color(0xff717575);
