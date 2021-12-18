@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:footix/models/question.dart';
@@ -8,10 +9,11 @@ import 'package:footix/controllers/question_controller.dart';
 import 'package:footix/models/question_base.dart';
 import 'package:footix/views/score_screen.dart';
 
-QuestionController questionController = QuestionController();
-Question currentQuestion = questionController.getNextQuestion();
+import '../quick_challenge_screen.dart';
 
-int maxQuestionNum = QuestionBase().questionList.length;
+QuestionController questionController = QuestionController();
+
+int maxQuestionNum = 2;
 List<Question> answeredQuestionList = [];
 
 class QuestionCard extends StatefulWidget {
@@ -32,8 +34,9 @@ class _QuestionCardState extends State<QuestionCard> {
     backgroundColor: MaterialStateProperty.all<Color>(Colors.greenAccent),
   );
 
-  void updateState(answerText) {
+  void updateState(answerText, currentQuestion) {
     setState(() {
+      answeredQuestionList.add(currentQuestion);
       currentQuestion.setUserAnswer(answerText);
       Future.delayed(Duration(milliseconds: 0), () {
         // 3000?
@@ -44,7 +47,6 @@ class _QuestionCardState extends State<QuestionCard> {
         }
       });
     });
-    answeredQuestionList.add(currentQuestion);
   }
 
   void correctAnswerActions() {
@@ -63,10 +65,7 @@ class _QuestionCardState extends State<QuestionCard> {
               onPressed: () {
                 setState(() {
                   Navigator.pop(context);
-                  if (questionController.questionNum <
-                      questionController.questionList.length)
-                    currentQuestion = questionController.getNextQuestion();
-                  else {
+                  if (questionController.questionNum > maxQuestionNum) {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -99,16 +98,17 @@ class _QuestionCardState extends State<QuestionCard> {
           Center(
             child: TextButton(
               onPressed: () {
+                Navigator.pop(context);
                 setState(() {
-                  if (questionController.questionNum <
-                      questionController.questionList.length) {
-                    currentQuestion = questionController.getNextQuestion();
-                  } else {
-                    Navigator.pushNamed(context, ScoreScreen.id,
-                        arguments: answeredQuestionList);
+                  if (questionController.questionNum > maxQuestionNum) {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScoreScreen(
+                              userAnsweredQuestionList: answeredQuestionList),
+                        ));
                   }
                 });
-                Navigator.pop(context);
               },
               child: const Text('OK'),
             ),
@@ -120,178 +120,196 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.7,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              // IMAGE SECTION
+    return FutureBuilder<Question>(
+      future: questionController.getNextQuestion2(),
+      builder: (BuildContext context, AsyncSnapshot<Question> result) {
+        if (!result.hasData) {
+          return const Center(
+            child: Text(''),
+          );
+        } else {
+          return SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    // IMAGE SECTION
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.92,
-                    child: Card(
-                      color: kMainLightColor,
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(5),
-                            child: Column(
-                              children: [
-                                Image.asset(currentQuestion.getImgSrc(),
-                                    height: MediaQuery.of(context).size.height *
-                                        0.25), // gives me 100% of container's height
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
-
-              // QUESTION TEXT
-
-              Padding(
-                  padding: const EdgeInsets.only(top: 10.0),
-                  child: Expanded(
-                    child: Column(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(
-                          width: double.infinity,
+                          width: MediaQuery.of(context).size.width * 0.92,
                           child: Card(
                             color: kMainLightColor,
-                            child: Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Text(currentQuestion.getQuestionText(),
-                                  style: kQuestionTextStyle),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: Column(
+                                    children: [
+                                      Image.asset(result.data!.getImgSrc(),
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.25),
+                                      // gives me 100% of container's height
+                                    ],
+                                  ),
+                                )
+                              ],
                             ),
                           ),
                         )
                       ],
                     ),
-                  )),
-            ],
-          ),
 
-          // ANSWER BUTTONS
+                    // QUESTION TEXT
 
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      child: TextButton(
-                        onPressed: () {
-                          updateState(currentQuestion.getAnswerA());
-                        },
-                        style: currentQuestion.getUserAnswer() ==
-                                currentQuestion.getAnswerA()
-                            ? selectedButtonStyle
-                            : initialButtonStyle,
-                        child: Text(
-                          currentQuestion.getAnswerA(),
-                          style: TextStyle(
-                            fontFamily: 'Lato',
-                            fontSize: 16.0,
+                    Padding(
+                        padding: const EdgeInsets.only(top: 10.0),
+                        child: Expanded(
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: Card(
+                                  color: kMainLightColor,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Text(result.data!.getQuestionText(),
+                                        style: kQuestionTextStyle),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        )),
+                  ],
+                ),
+
+                // ANSWER BUTTONS
+
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.1,
+                            child: TextButton(
+                              onPressed: () {
+                                updateState(
+                                    result.data!.getAnswerA(), result.data!);
+                              },
+                              style: result.data!.getUserAnswer() ==
+                                      result.data!.getAnswerA()
+                                  ? selectedButtonStyle
+                                  : initialButtonStyle,
+                              child: Text(
+                                result.data!.getAnswerA(),
+                                style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontSize: 16.0,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      child: TextButton(
-                        onPressed: () {
-                          updateState(currentQuestion.getAnswerB());
-                        },
-                        style: currentQuestion.getUserAnswer() ==
-                                currentQuestion.getAnswerB()
-                            ? selectedButtonStyle
-                            : initialButtonStyle,
-                        child: Text(
-                          currentQuestion.getAnswerB(),
-                          style: TextStyle(
-                            fontFamily: 'Lato',
-                            fontSize: 16.0,
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          flex: 5,
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.1,
+                            child: TextButton(
+                              onPressed: () {
+                                updateState(
+                                    result.data!.getAnswerB(), result.data!);
+                              },
+                              style: result.data!.getUserAnswer() ==
+                                      result.data!.getAnswerB()
+                                  ? selectedButtonStyle
+                                  : initialButtonStyle,
+                              child: Text(
+                                result.data!.getAnswerB(),
+                                style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontSize: 16.0,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              Padding(padding: EdgeInsets.only(top: 10)),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      child: TextButton(
-                        onPressed: () {
-                          updateState(currentQuestion.getAnswerC());
-                        },
-                        style: currentQuestion.getUserAnswer() ==
-                                currentQuestion.getAnswerC()
-                            ? selectedButtonStyle
-                            : initialButtonStyle,
-                        child: Text(
-                          currentQuestion.getAnswerC(),
-                          style: TextStyle(
-                            fontFamily: 'Lato',
-                            fontSize: 16.0,
+                    Padding(padding: EdgeInsets.only(top: 10)),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.1,
+                            child: TextButton(
+                              onPressed: () {
+                                updateState(
+                                    result.data!.getAnswerC(), result.data!);
+                              },
+                              style: result.data!.getUserAnswer() ==
+                                      result.data!.getAnswerC()
+                                  ? selectedButtonStyle
+                                  : initialButtonStyle,
+                              child: Text(
+                                result.data!.getAnswerC(),
+                                style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontSize: 16.0,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      child: TextButton(
-                        onPressed: () {
-                          updateState(currentQuestion.getAnswerD());
-                        },
-                        style: currentQuestion.getUserAnswer() ==
-                                currentQuestion.getAnswerD()
-                            ? selectedButtonStyle
-                            : initialButtonStyle,
-                        child: Text(
-                          currentQuestion.getAnswerD(),
-                          style: TextStyle(
-                            fontFamily: 'Lato',
-                            fontSize: 16.0,
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          flex: 5,
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.1,
+                            child: TextButton(
+                              onPressed: () {
+                                updateState(
+                                    result.data!.getAnswerD(), result.data!);
+                              },
+                              style: result.data!.getUserAnswer() ==
+                                      result.data!.getAnswerD()
+                                  ? selectedButtonStyle
+                                  : initialButtonStyle,
+                              child: Text(
+                                result.data!.getAnswerD(),
+                                style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontSize: 16.0,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ),
-        ],
-      ),
+                      ],
+                    )
+                  ],
+                ),
+              ],
+            ),
+          );
+        }
+      },
     );
   }
 }

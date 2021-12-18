@@ -1,34 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:footix/models/question.dart';
 import 'package:footix/models/question_base.dart';
+import 'dart:math';
 
 import '../contants.dart';
 
 class QuestionController {
   int questionNum = 0;
-  List<Map> questionList = QuestionBase().questionList;
+  int questionListLength = 100;
 
-  getNextQuestion() {
-    // Question yuahu = getNextQuestion2();
-    // print(yuahu.getAnswerA());
-    // HERE IS WHERE I AM GOING TO RETRIEVE THE DATA FROM DB
-    if (questionNum < questionList.length) {
-      Map selectedQuestion = questionList[questionNum];
-      Question currentQuestion = Question(
-          questionText: selectedQuestion['questionText'],
-          answerA: selectedQuestion['answerA'],
-          answerB: selectedQuestion['answerB'],
-          answerC: selectedQuestion['answerC'],
-          answerD: selectedQuestion['answerD'],
-          correctAnswer: selectedQuestion['correctAnswer'],
-          imgSrc: selectedQuestion['imgSrc']);
-      questionNum++;
-      return currentQuestion;
-    }
-  }
-
-  getNextQuestion2() async {
-    List<Map> yu;
+  Future<Question> getNextQuestion2() async {
+    final _random = new Random();
+    int questionNumber = _random.nextInt(3);
+    List<Map> question;
     Question currentQuestion = Question(
         questionText: 'questionText',
         answerA: 'answerA',
@@ -36,16 +20,17 @@ class QuestionController {
         answerC: 'answerC',
         answerD: 'answerD',
         correctAnswer: 'correctAnswer');
-    if (questionNum < questionList.length) {
-      yu = await QuestionBase().getQuestionList();
+    if (questionNum < questionListLength) {
+      question = await QuestionBase().getQuestionList();
+      questionListLength = question.length;
       currentQuestion = Question(
-          questionText: yu[0]['questionText'],
-          answerA: yu[0]['answerA'],
-          answerB: yu[0]['answerB'],
-          answerC: yu[0]['answerC'],
-          answerD: yu[0]['answerD'],
-          correctAnswer: yu[0]['correctAnswer'],
-          imgSrc: yu[0]['imgSrc']);
+          questionText: question[questionNumber]['questionText'],
+          answerA: question[questionNumber]['answerA'],
+          answerB: question[questionNumber]['answerB'],
+          answerC: question[questionNumber]['answerC'],
+          answerD: question[questionNumber]['answerD'],
+          correctAnswer: question[questionNumber]['correctAnswer'],
+          imgSrc: question[questionNumber]['imgSrc']);
       questionNum++;
       return currentQuestion;
     }
