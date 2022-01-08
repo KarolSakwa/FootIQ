@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:footix/models/question.dart';
 import 'package:footix/models/question_base.dart';
-import 'dart:math';
 
 import '../contants.dart';
 
 class QuestionController {
-  int questionNum = 0;
-  int questionListLength = 100;
+  int questionNum = 0; // probably just a question counter
+  int questionNumber = 0; // indicates which question should be displayed
+  int questionListLength = 50;
+
+  List getList() {
+    return List<int>.generate(questionListLength, (i) => i + 1);
+  }
+
+  List indexList = [];
 
   Future<Question> getNextQuestion2() async {
-    final _random = new Random();
-    int questionNumber = _random.nextInt(3);
+    if (indexList.isEmpty) indexList = getList();
+
     List<Map> question;
     Question currentQuestion = Question(
         questionText: 'questionText',
@@ -32,6 +38,7 @@ class QuestionController {
           correctAnswer: question[questionNumber]['correctAnswer'],
           imgSrc: question[questionNumber]['imgSrc']);
       questionNum++;
+      indexList.remove(questionNumber);
       return currentQuestion;
     }
     return currentQuestion;

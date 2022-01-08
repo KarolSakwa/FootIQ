@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ QuestionController questionController = QuestionController();
 
 int maxQuestionNum = 2;
 List<Question> answeredQuestionList = [];
+final _random = Random();
 
 class QuestionCard extends StatefulWidget {
   const QuestionCard({Key? key}) : super(key: key);
@@ -33,6 +35,13 @@ class _QuestionCardState extends State<QuestionCard> {
     foregroundColor: MaterialStateProperty.all<Color>(kMainLightColor),
     backgroundColor: MaterialStateProperty.all<Color>(Colors.greenAccent),
   );
+
+  @override
+  void initState() {
+    questionController.questionNumber =
+        _random.nextInt(questionController.questionListLength);
+    super.initState();
+  }
 
   void updateState(answerText, currentQuestion) {
     setState(() {
@@ -64,6 +73,8 @@ class _QuestionCardState extends State<QuestionCard> {
             child: TextButton(
               onPressed: () {
                 setState(() {
+                  questionController.questionNumber =
+                      _random.nextInt(questionController.questionListLength);
                   Navigator.pop(context);
                   if (questionController.questionNum > maxQuestionNum) {
                     Navigator.push(
@@ -98,8 +109,10 @@ class _QuestionCardState extends State<QuestionCard> {
           Center(
             child: TextButton(
               onPressed: () {
-                Navigator.pop(context);
                 setState(() {
+                  questionController.questionNumber =
+                      _random.nextInt(questionController.questionListLength);
+                  Navigator.pop(context);
                   if (questionController.questionNum > maxQuestionNum) {
                     Navigator.push(
                         context,
@@ -123,11 +136,7 @@ class _QuestionCardState extends State<QuestionCard> {
     return FutureBuilder<Question>(
       future: questionController.getNextQuestion2(),
       builder: (BuildContext context, AsyncSnapshot<Question> result) {
-        if (!result.hasData) {
-          return const Center(
-            child: Text(''),
-          );
-        } else {
+        if (result.hasData) {
           return SizedBox(
             height: MediaQuery.of(context).size.height * 0.7,
             child: Column(
@@ -309,6 +318,9 @@ class _QuestionCardState extends State<QuestionCard> {
             ),
           );
         }
+        return const Center(
+          child: Text(''),
+        );
       },
     );
   }

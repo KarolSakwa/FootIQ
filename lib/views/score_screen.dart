@@ -50,4 +50,6 @@ class ScoreScreen extends StatelessWidget {
       ),
     );
   }
+
+  //List<Question> getAnswerCorrectness() {}
 }
