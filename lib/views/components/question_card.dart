@@ -17,6 +17,9 @@ QuestionController questionController = QuestionController();
 int maxQuestionNum = 2;
 List<Question> answeredQuestionList = [];
 final _random = Random();
+const maxSeconds = 3;
+int seconds = maxSeconds;
+Timer? timer;
 
 class QuestionCard extends StatefulWidget {
   const QuestionCard({Key? key}) : super(key: key);
@@ -26,6 +29,20 @@ class QuestionCard extends StatefulWidget {
 }
 
 class _QuestionCardState extends State<QuestionCard> {
+  void startTimer() {
+    seconds = maxSeconds;
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (seconds > 0) {
+        setState(() {
+          seconds--;
+        });
+      } else {
+        timer!.cancel();
+        timesUpActions();
+      }
+    });
+  }
+
   ButtonStyle initialButtonStyle = ButtonStyle(
     foregroundColor: MaterialStateProperty.all<Color>(kMainLightColor),
     backgroundColor: MaterialStateProperty.all<Color>(kMainMediumColor),
@@ -40,10 +57,12 @@ class _QuestionCardState extends State<QuestionCard> {
   void initState() {
     questionController.questionNumber =
         _random.nextInt(questionController.questionListLength);
+    startTimer();
     super.initState();
   }
 
   void updateState(answerText, currentQuestion) {
+    questionController.questionNum++;
     setState(() {
       answeredQuestionList.add(currentQuestion);
       currentQuestion.setUserAnswer(answerText);
@@ -56,6 +75,49 @@ class _QuestionCardState extends State<QuestionCard> {
         }
       });
     });
+  }
+
+  void timesUpActions() {
+    questionController.questionNum++;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Center(
+          child: const Text(
+            'Time\'s up!',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+        actions: <Widget>[
+          Center(
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  seconds = maxSeconds;
+                  Navigator.pop(context);
+                  if (questionController.questionNum > maxQuestionNum) {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScoreScreen(
+                              userAnsweredQuestionList: answeredQuestionList),
+                        ));
+                    //Navigator.pushNamed(context, ScoreScreen.id);
+                  }
+                  questionController.questionNumber =
+                      _random.nextInt(questionController.questionListLength);
+                });
+                if (questionController.questionNum > maxQuestionNum)
+                  timer!.cancel();
+                else
+                  startTimer();
+              },
+              child: const Text('OK'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void correctAnswerActions() {
@@ -73,8 +135,6 @@ class _QuestionCardState extends State<QuestionCard> {
             child: TextButton(
               onPressed: () {
                 setState(() {
-                  questionController.questionNumber =
-                      _random.nextInt(questionController.questionListLength);
                   Navigator.pop(context);
                   if (questionController.questionNum > maxQuestionNum) {
                     Navigator.push(
@@ -85,7 +145,13 @@ class _QuestionCardState extends State<QuestionCard> {
                         ));
                     //Navigator.pushNamed(context, ScoreScreen.id);
                   }
+                  questionController.questionNumber =
+                      _random.nextInt(questionController.questionListLength);
                 });
+                if (questionController.questionNum > maxQuestionNum)
+                  timer!.cancel();
+                else
+                  startTimer();
               },
               child: const Text('OK'),
             ),
@@ -110,8 +176,6 @@ class _QuestionCardState extends State<QuestionCard> {
             child: TextButton(
               onPressed: () {
                 setState(() {
-                  questionController.questionNumber =
-                      _random.nextInt(questionController.questionListLength);
                   Navigator.pop(context);
                   if (questionController.questionNum > maxQuestionNum) {
                     Navigator.push(
@@ -121,7 +185,13 @@ class _QuestionCardState extends State<QuestionCard> {
                               userAnsweredQuestionList: answeredQuestionList),
                         ));
                   }
+                  questionController.questionNumber =
+                      _random.nextInt(questionController.questionListLength);
                 });
+                if (questionController.questionNum > maxQuestionNum)
+                  timer!.cancel();
+                else
+                  startTimer();
               },
               child: const Text('OK'),
             ),
@@ -133,195 +203,238 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Question>(
-      future: questionController.getNextQuestion2(),
-      builder: (BuildContext context, AsyncSnapshot<Question> result) {
-        if (result.hasData) {
-          return SizedBox(
-            height: MediaQuery.of(context).size.height * 0.7,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    // IMAGE SECTION
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: FutureBuilder<Question>(
+        future: questionController.getNextQuestion2(),
+        builder: (BuildContext context, AsyncSnapshot<Question> result) {
+          if (result.hasData &&
+              questionController.questionNum <= maxQuestionNum) {
+            return SizedBox(
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  buildTimer(),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      // IMAGE SECTION
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.92,
-                          child: Card(
-                            color: kMainLightColor,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.92,
+                            child: Card(
+                              color: kMainLightColor,
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(5),
+                                    child: Column(
+                                      children: [
+                                        Image.asset(result.data!.getImgSrc(),
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.25),
+                                        // gives me 100% of container's height
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+
+                      // QUESTION TEXT
+
+                      Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: Expanded(
                             child: Column(
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(5),
-                                  child: Column(
-                                    children: [
-                                      Image.asset(result.data!.getImgSrc(),
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.25),
-                                      // gives me 100% of container's height
-                                    ],
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: Card(
+                                    color: kMainLightColor,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: Text(
+                                          result.data!.getQuestionText(),
+                                          style: kQuestionTextStyle),
+                                    ),
                                   ),
                                 )
                               ],
                             ),
-                          ),
-                        )
-                      ],
-                    ),
+                          )),
+                    ],
+                  ),
 
-                    // QUESTION TEXT
+                  // ANSWER BUTTONS
 
-                    Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
-                        child: Expanded(
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                width: double.infinity,
-                                child: Card(
-                                  color: kMainLightColor,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Text(result.data!.getQuestionText(),
-                                        style: kQuestionTextStyle),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 5,
+                            child: Container(
+                              height: MediaQuery.of(context).size.height * 0.1,
+                              child: TextButton(
+                                onPressed: () {
+                                  updateState(
+                                      result.data!.getAnswerA(), result.data!);
+                                  timer!.cancel();
+                                },
+                                style: result.data!.getUserAnswer() ==
+                                        result.data!.getAnswerA()
+                                    ? selectedButtonStyle
+                                    : initialButtonStyle,
+                                child: Text(
+                                  result.data!.getAnswerA(),
+                                  style: TextStyle(
+                                    fontFamily: 'Lato',
+                                    fontSize: 16.0,
                                   ),
                                 ),
-                              )
-                            ],
+                              ),
+                            ),
                           ),
-                        )),
-                  ],
-                ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Expanded(
+                            flex: 5,
+                            child: Container(
+                              height: MediaQuery.of(context).size.height * 0.1,
+                              child: TextButton(
+                                onPressed: () {
+                                  updateState(
+                                      result.data!.getAnswerB(), result.data!);
+                                  timer!.cancel();
+                                },
+                                style: result.data!.getUserAnswer() ==
+                                        result.data!.getAnswerB()
+                                    ? selectedButtonStyle
+                                    : initialButtonStyle,
+                                child: Text(
+                                  result.data!.getAnswerB(),
+                                  style: TextStyle(
+                                    fontFamily: 'Lato',
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Padding(padding: EdgeInsets.only(top: 10)),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 5,
+                            child: Container(
+                              height: MediaQuery.of(context).size.height * 0.1,
+                              child: TextButton(
+                                onPressed: () {
+                                  updateState(
+                                      result.data!.getAnswerC(), result.data!);
+                                  timer!.cancel();
+                                },
+                                style: result.data!.getUserAnswer() ==
+                                        result.data!.getAnswerC()
+                                    ? selectedButtonStyle
+                                    : initialButtonStyle,
+                                child: Text(
+                                  result.data!.getAnswerC(),
+                                  style: TextStyle(
+                                    fontFamily: 'Lato',
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Expanded(
+                            flex: 5,
+                            child: Container(
+                              height: MediaQuery.of(context).size.height * 0.1,
+                              child: TextButton(
+                                onPressed: () {
+                                  updateState(
+                                      result.data!.getAnswerD(), result.data!);
+                                  timer!.cancel();
+                                },
+                                style: result.data!.getUserAnswer() ==
+                                        result.data!.getAnswerD()
+                                    ? selectedButtonStyle
+                                    : initialButtonStyle,
+                                child: Text(
+                                  result.data!.getAnswerD(),
+                                  style: TextStyle(
+                                    fontFamily: 'Lato',
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            );
+          } else {
+            return const Center(
+                child: SizedBox(
+              width: 150,
+              height: 150,
+              child: CircularProgressIndicator(
+                color: kMainLightColor,
+                strokeWidth: 12,
+              ),
+            ));
+          }
+        },
+      ),
+    );
+  }
 
-                // ANSWER BUTTONS
-
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 5,
-                          child: Container(
-                            height: MediaQuery.of(context).size.height * 0.1,
-                            child: TextButton(
-                              onPressed: () {
-                                updateState(
-                                    result.data!.getAnswerA(), result.data!);
-                              },
-                              style: result.data!.getUserAnswer() ==
-                                      result.data!.getAnswerA()
-                                  ? selectedButtonStyle
-                                  : initialButtonStyle,
-                              child: Text(
-                                result.data!.getAnswerA(),
-                                style: TextStyle(
-                                  fontFamily: 'Lato',
-                                  fontSize: 16.0,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
-                          flex: 5,
-                          child: Container(
-                            height: MediaQuery.of(context).size.height * 0.1,
-                            child: TextButton(
-                              onPressed: () {
-                                updateState(
-                                    result.data!.getAnswerB(), result.data!);
-                              },
-                              style: result.data!.getUserAnswer() ==
-                                      result.data!.getAnswerB()
-                                  ? selectedButtonStyle
-                                  : initialButtonStyle,
-                              child: Text(
-                                result.data!.getAnswerB(),
-                                style: TextStyle(
-                                  fontFamily: 'Lato',
-                                  fontSize: 16.0,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Padding(padding: EdgeInsets.only(top: 10)),
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 5,
-                          child: Container(
-                            height: MediaQuery.of(context).size.height * 0.1,
-                            child: TextButton(
-                              onPressed: () {
-                                updateState(
-                                    result.data!.getAnswerC(), result.data!);
-                              },
-                              style: result.data!.getUserAnswer() ==
-                                      result.data!.getAnswerC()
-                                  ? selectedButtonStyle
-                                  : initialButtonStyle,
-                              child: Text(
-                                result.data!.getAnswerC(),
-                                style: TextStyle(
-                                  fontFamily: 'Lato',
-                                  fontSize: 16.0,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
-                          flex: 5,
-                          child: Container(
-                            height: MediaQuery.of(context).size.height * 0.1,
-                            child: TextButton(
-                              onPressed: () {
-                                updateState(
-                                    result.data!.getAnswerD(), result.data!);
-                              },
-                              style: result.data!.getUserAnswer() ==
-                                      result.data!.getAnswerD()
-                                  ? selectedButtonStyle
-                                  : initialButtonStyle,
-                              child: Text(
-                                result.data!.getAnswerD(),
-                                style: TextStyle(
-                                  fontFamily: 'Lato',
-                                  fontSize: 16.0,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ],
+  Widget buildTimer() => SizedBox(
+        width: 150,
+        height: 150,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            CircularProgressIndicator(
+              value: seconds / maxSeconds,
+              strokeWidth: 12,
+              valueColor: const AlwaysStoppedAnimation(kMainLightColor),
+              backgroundColor: kMainDarkColor,
             ),
-          );
-        }
-        return const Center(
-          child: Text(''),
-        );
-      },
+            Center(
+              child: buildTime(),
+            )
+          ],
+        ),
+      );
+
+  Widget buildTime() {
+    return Text(
+      '$seconds',
+      style: kWelcomeScreenTitleTextStyle,
     );
   }
 }

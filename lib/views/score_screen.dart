@@ -38,7 +38,8 @@ class ScoreScreen extends StatelessWidget {
                     fontSize: 16),
               ),
               Text(
-                userAnsweredQuestionList[0].getUserAnswer(),
+                'Correct answers: ' +
+                    (getUserAnsweredCorrectlyQuestionList().length).toString(),
                 style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -51,5 +52,13 @@ class ScoreScreen extends StatelessWidget {
     );
   }
 
-  //List<Question> getAnswerCorrectness() {}
+  List<Question> getUserAnsweredCorrectlyQuestionList() {
+    List<Question> userAnsweredCorrectlyQuestionList = [];
+    for (var answeredQuestion in userAnsweredQuestionList) {
+      if (answeredQuestion.getUserAnswer() ==
+          answeredQuestion.getCorrectAnswer())
+        userAnsweredCorrectlyQuestionList.add(answeredQuestion);
+    }
+    return userAnsweredCorrectlyQuestionList;
+  }
 }

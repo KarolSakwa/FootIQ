@@ -17,7 +17,7 @@ class QuestionController {
 
   Future<Question> getNextQuestion2() async {
     if (indexList.isEmpty) indexList = getList();
-
+    indexList.remove(questionNumber);
     List<Map> question;
     Question currentQuestion = Question(
         questionText: 'questionText',
@@ -37,8 +37,6 @@ class QuestionController {
           answerD: question[questionNumber]['answerD'],
           correctAnswer: question[questionNumber]['correctAnswer'],
           imgSrc: question[questionNumber]['imgSrc']);
-      questionNum++;
-      indexList.remove(questionNumber);
       return currentQuestion;
     }
     return currentQuestion;
