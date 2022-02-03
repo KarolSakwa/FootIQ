@@ -4,11 +4,14 @@ import 'package:footix/contants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:footix/views/profile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 import 'login_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
   static const String id = 'registration_screen';
+  final firestoreInstance = FirebaseFirestore.instance;
+  var uuid = Uuid();
   @override
   _RegistrationScreenState createState() => _RegistrationScreenState();
 }
@@ -28,6 +31,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   final _auth = FirebaseAuth.instance;
   String email = '';
+  String username = '';
   String password = '';
   @override
   Widget build(BuildContext context) {
@@ -41,7 +45,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         child: Column(
           children: <Widget>[
             Padding(
-              padding: const EdgeInsets.only(top: 50.0),
+              padding: const EdgeInsets.only(top: 20.0),
               child: Center(
                 child: Container(
                     /*decoration: BoxDecoration(
@@ -51,11 +55,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ),
             SizedBox(
-              height: 50,
+              height: 20,
             ),
             Padding(
               //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-              padding: EdgeInsets.symmetric(horizontal: 15),
+              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
               child: TextField(
                 style: TextStyle(color: kMainLightColor),
                 cursorColor: kMainLightColor,
@@ -76,11 +80,33 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ),
             Padding(
+              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+              padding: EdgeInsets.symmetric(horizontal: 15),
+              child: TextField(
+                style: TextStyle(color: kMainLightColor),
+                cursorColor: kMainLightColor,
+                decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      // width: 0.0 produces a thin "hairline" border
+                      borderSide: BorderSide(color: kMainLightColor, width: 1),
+                    ),
+                    hintStyle: TextStyle(color: kMainLightColor),
+                    border: OutlineInputBorder(),
+                    labelText: 'Display name',
+                    labelStyle: TextStyle(color: kMainLightColor),
+                    hintText: 'Enter your public username'),
+                onChanged: (value) {
+                  username = value;
+                },
+              ),
+            ),
+            Padding(
               padding: const EdgeInsets.only(
                   left: 15.0, right: 15.0, top: 15, bottom: 0),
               //padding: EdgeInsets.symmetric(horizontal: 15),
-              child: TextField(
+              child: TextFormField(
                 obscureText: true,
+                style: TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                     enabledBorder: const OutlineInputBorder(
                       // width: 0.0 produces a thin "hairline" border
@@ -132,11 +158,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ),
                 onPressed: () async {
                   try {
-                    final newUser = await _auth.createUserWithEmailAndPassword(
-                        email: email, password: password);
-                    if (newUser != null) {
-                      Navigator.pushNamed(context, ProfileScreen.id);
-                    }
+                    final newUser = await _auth
+                        .createUserWithEmailAndPassword(
+                            email: email, password: password)
+                        .then((value) =>
+                            value.user.updateProfile(displayName: username));
+                    Navigator.pushNamed(context, ProfileScreen.id);
                   } catch (e) {
                     print(e);
                   }

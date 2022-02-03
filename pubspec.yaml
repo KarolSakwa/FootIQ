@@ -18,7 +18,10 @@ dependencies:
   cloud_firestore: "^0.16.0"
   web_scraper:
   modal_progress_hud_nsn: ^0.1.0-nullsafety-0
-
+  image: ^3.1.1
+  path_provider: ^1.6.5
+  fl_chart: ^0.41.0
+  uuid: ^3.0.5
 
 dev_dependencies:
   flutter_test:
@@ -33,3 +36,4 @@ flutter:
 
   assets:
   - assets/question_images/
+  - assets/competition_images/

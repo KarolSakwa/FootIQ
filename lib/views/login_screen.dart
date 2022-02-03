@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _auth = FirebaseAuth.instance;
   String email = '';
   String password = '';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,8 +70,9 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.only(
                   left: 15.0, right: 15.0, top: 15, bottom: 0),
               //padding: EdgeInsets.symmetric(horizontal: 15),
-              child: TextField(
+              child: TextFormField(
                 obscureText: true,
+                style: TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                     enabledBorder: const OutlineInputBorder(
                       // width: 0.0 produces a thin "hairline" border
@@ -119,9 +121,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 onPressed: () async {
                   try {
-                    final newUser = await _auth.createUserWithEmailAndPassword(
+                    final user = await _auth.signInWithEmailAndPassword(
                         email: email, password: password);
-                    if (newUser != null) {
+                    if (user != null) {
                       Navigator.pushNamed(context, ProfileScreen.id);
                     }
                   } catch (e) {

@@ -9,6 +9,7 @@ class Question {
       _answerD = '',
       _correctAnswer = '',
       _userAnswer = '',
+      _questionCode = '',
       _questionCategory = '';
 
   Question(
@@ -20,6 +21,7 @@ class Question {
       required String answerC,
       required String answerD,
       required String correctAnswer,
+      required String questionCode,
       String userAnswer = ''}) {
     this._imgSrc = imgSrc;
     this._questionText = questionText;
@@ -29,6 +31,7 @@ class Question {
     this._answerD = answerD;
     this._correctAnswer = correctAnswer;
     this._userAnswer = userAnswer;
+    this._questionCode = questionCode;
     this._questionCategory = questionCategory;
   }
 
@@ -66,6 +69,10 @@ class Question {
 
   String getQuestionCategory() {
     return _questionCategory;
+  }
+
+  String getQuestionCode() {
+    return _questionCode;
   }
 
   setUserAnswer(userAnswer) {

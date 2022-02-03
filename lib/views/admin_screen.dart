@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,7 +16,7 @@ class AdminScreen extends StatefulWidget {
 class _AdminScreenState extends State<AdminScreen> {
   void initState() {
     Admin admin = Admin();
-    //admin.insertQuestionsToDB();
+    //admin.IQTDBscorersByCompetitionSeason();
 
     // Future competitions = admin.getCollectionData('competition');
     // competitions.then((val) {

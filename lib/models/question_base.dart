@@ -22,6 +22,7 @@ class QuestionBase {
           'answerD': result.data()['answer_d'],
           'correctAnswer': result.data()['correct_answer'],
           'imgSrc': '', //result.data()['img_src']
+          'questionCode': result.data()['docCode'],
           'questionCategory': '', //result.data()['question_category']
         });
         //collectionMap[result.data()['tm_code']] = result.data()['name'];

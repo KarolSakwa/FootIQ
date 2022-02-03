@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:footix/views/admin_screen.dart';
+import 'package:footix/views/main_screen.dart';
 import 'package:provider/provider.dart';
 import 'views/welcome_screen.dart';
 import 'views/login_screen.dart';
@@ -33,8 +34,9 @@ class FootiX9 extends StatelessWidget {
         primaryColorDark: kMainDarkColor,
         fontFamily: 'Lato',
       ),
-      initialRoute: WelcomeScreen.id,
+      initialRoute: MainScreen.id,
       routes: {
+        MainScreen.id: (context) => MainScreen(),
         WelcomeScreen.id: (context) => WelcomeScreen(),
         QuickChallengeScreen.id: (context) => QuickChallengeScreen(),
         ScoreScreen.id: (context) => ScoreScreen(),
@@ -48,3 +50,17 @@ class FootiX9 extends StatelessWidget {
     );
   }
 }
+/*
+return FutureBuilder<FirebaseUser>(
+            future: FirebaseAuth.instance.currentUser(),
+            builder: (BuildContext context, AsyncSnapshot<FirebaseUser> snapshot){
+                       if (snapshot.hasData){
+                           FirebaseUser user = snapshot.data; // this is your user instance
+                           /// is because there is user already logged
+                           return MainScreen();
+                        }
+                         /// other way there is no user logged.
+                         return LoginScreen();
+             }
+          );
+ */

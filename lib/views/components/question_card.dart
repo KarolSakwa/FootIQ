@@ -9,17 +9,18 @@ import 'package:footix/models/question.dart';
 import 'package:footix/controllers/question_controller.dart';
 import 'package:footix/models/question_base.dart';
 import 'package:footix/views/score_screen.dart';
-
 import '../quick_challenge_screen.dart';
 
 QuestionController questionController = QuestionController();
 
-int maxQuestionNum = 2;
+int maxQuestionNum = 10;
 List<Question> answeredQuestionList = [];
 final _random = Random();
-const maxSeconds = 3;
+const maxSeconds = 15;
 int seconds = maxSeconds;
 Timer? timer;
+
+List<Icon> scoreKeeper = [];
 
 class QuestionCard extends StatefulWidget {
   const QuestionCard({Key? key}) : super(key: key);
@@ -29,6 +30,10 @@ class QuestionCard extends StatefulWidget {
 }
 
 class _QuestionCardState extends State<QuestionCard> {
+  double getFontSize(String txt) {
+    return txt.length > 20 ? 14 : 16;
+  }
+
   void startTimer() {
     seconds = maxSeconds;
     timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -78,125 +83,149 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   void timesUpActions() {
+    scoreKeeper.add(Icon(
+      Icons.close,
+      color: Colors.red,
+    ));
     questionController.questionNum++;
     showDialog(
+      barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Center(
-          child: const Text(
-            'Time\'s up!',
-            style: TextStyle(color: Colors.red),
-          ),
-        ),
-        actions: <Widget>[
-          Center(
-            child: TextButton(
-              onPressed: () {
-                setState(() {
-                  seconds = maxSeconds;
-                  Navigator.pop(context);
-                  if (questionController.questionNum > maxQuestionNum) {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ScoreScreen(
-                              userAnsweredQuestionList: answeredQuestionList),
-                        ));
-                    //Navigator.pushNamed(context, ScoreScreen.id);
-                  }
-                  questionController.questionNumber =
-                      _random.nextInt(questionController.questionListLength);
-                });
-                if (questionController.questionNum > maxQuestionNum)
-                  timer!.cancel();
-                else
-                  startTimer();
-              },
-              child: const Text('OK'),
+      builder: (BuildContext context) => WillPopScope(
+        onWillPop: () async => false,
+        child: AlertDialog(
+          title: Center(
+            child: const Text(
+              'Time\'s up!',
+              style: TextStyle(color: Colors.red),
             ),
           ),
-        ],
+          actions: <Widget>[
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    seconds = maxSeconds;
+                    Navigator.pop(context);
+                    if (questionController.questionNum > maxQuestionNum) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ScoreScreen(
+                                userAnsweredQuestionList: answeredQuestionList),
+                          ));
+                      //Navigator.pushNamed(context, ScoreScreen.id);
+                    }
+                    questionController.questionNumber =
+                        _random.nextInt(questionController.questionListLength);
+                  });
+                  if (questionController.questionNum > maxQuestionNum)
+                    timer!.cancel();
+                  else
+                    startTimer();
+                },
+                child: const Text('OK'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void correctAnswerActions() {
+    scoreKeeper.add(Icon(
+      Icons.check,
+      color: Colors.green,
+    ));
     showDialog(
+      barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Center(
-          child: const Text(
-            'Correct!',
-            style: TextStyle(color: Colors.green),
-          ),
-        ),
-        actions: <Widget>[
-          Center(
-            child: TextButton(
-              onPressed: () {
-                setState(() {
-                  Navigator.pop(context);
-                  if (questionController.questionNum > maxQuestionNum) {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ScoreScreen(
-                              userAnsweredQuestionList: answeredQuestionList),
-                        ));
-                    //Navigator.pushNamed(context, ScoreScreen.id);
-                  }
-                  questionController.questionNumber =
-                      _random.nextInt(questionController.questionListLength);
-                });
-                if (questionController.questionNum > maxQuestionNum)
-                  timer!.cancel();
-                else
-                  startTimer();
-              },
-              child: const Text('OK'),
+      builder: (BuildContext context) => WillPopScope(
+        onWillPop: () async => false,
+        child: AlertDialog(
+          title: Center(
+            child: const Text(
+              'Correct!',
+              style: TextStyle(color: Colors.green),
             ),
           ),
-        ],
+          actions: <Widget>[
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    Navigator.pop(context);
+                    if (questionController.questionNum > maxQuestionNum) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ScoreScreen(
+                                userAnsweredQuestionList: answeredQuestionList),
+                          ));
+                      //Navigator.pushNamed(context, ScoreScreen.id);
+                    }
+                    questionController.questionNumber =
+                        _random.nextInt(questionController.questionListLength);
+                  });
+                  if (questionController.questionNum > maxQuestionNum)
+                    timer!.cancel();
+                  else
+                    startTimer();
+                },
+                child: const Text('OK'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void inCorrectAnswerActions() {
+    scoreKeeper.add(Icon(
+      Icons.close,
+      color: Colors.red,
+    ));
     showDialog(
+      barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Center(
-          child: const Text(
-            'Incorrect! : <',
-            style: TextStyle(color: Colors.red),
-          ),
-        ),
-        actions: <Widget>[
-          Center(
-            child: TextButton(
-              onPressed: () {
-                setState(() {
-                  Navigator.pop(context);
-                  if (questionController.questionNum > maxQuestionNum) {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ScoreScreen(
-                              userAnsweredQuestionList: answeredQuestionList),
-                        ));
-                  }
-                  questionController.questionNumber =
-                      _random.nextInt(questionController.questionListLength);
-                });
-                if (questionController.questionNum > maxQuestionNum)
-                  timer!.cancel();
-                else
-                  startTimer();
-              },
-              child: const Text('OK'),
+      builder: (BuildContext context) => WillPopScope(
+        onWillPop: () async => false,
+        child: AlertDialog(
+          title: Center(
+            child: const Text(
+              'Incorrect! : <',
+              style: TextStyle(color: Colors.red),
             ),
           ),
-        ],
+          actions: <Widget>[
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    Navigator.pop(context);
+                    if (questionController.questionNum > maxQuestionNum) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ScoreScreen(
+                                userAnsweredQuestionList: answeredQuestionList),
+                          ));
+                    }
+                    questionController.questionNumber =
+                        _random.nextInt(questionController.questionListLength);
+                  });
+                  if (questionController.questionNum > maxQuestionNum)
+                    timer!.cancel();
+                  else
+                    startTimer();
+                },
+                child: const Text('OK'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -210,12 +239,25 @@ class _QuestionCardState extends State<QuestionCard> {
         builder: (BuildContext context, AsyncSnapshot<Question> result) {
           if (result.hasData &&
               questionController.questionNum <= maxQuestionNum) {
+            String questionSeason = result.data!.getQuestionCode().substring(
+                    result.data!.getQuestionCode().indexOf('_') + 1) +
+                '-' +
+                (int.parse(result.data!.getQuestionCode().substring(
+                            result.data!.getQuestionCode().indexOf('_') + 1)) +
+                        1)
+                    .toString();
+            String questionCompetition = result.data!
+                .getQuestionCode()
+                .substring(0, result.data!.getQuestionCode().indexOf('_'));
             return SizedBox(
               height: MediaQuery.of(context).size.height * 0.7,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   buildTimer(),
+                  Row(
+                    children: scoreKeeper,
+                  ),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
@@ -234,11 +276,24 @@ class _QuestionCardState extends State<QuestionCard> {
                                     padding: const EdgeInsets.all(5),
                                     child: Column(
                                       children: [
-                                        Image.asset(result.data!.getImgSrc(),
+                                        Container(
+                                          padding: const EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                              color: kMainDarkColor),
+                                          child: Text(
+                                            questionSeason,
+                                            style: TextStyle(
+                                                fontSize: 18,
+                                                color: kMainLightColor,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                        Image.asset(
+                                            'assets/competition_images/$questionCompetition.png',
                                             height: MediaQuery.of(context)
                                                     .size
                                                     .height *
-                                                0.25),
+                                                0.15),
                                         // gives me 100% of container's height
                                       ],
                                     ),
@@ -300,7 +355,8 @@ class _QuestionCardState extends State<QuestionCard> {
                                   result.data!.getAnswerA(),
                                   style: TextStyle(
                                     fontFamily: 'Lato',
-                                    fontSize: 16.0,
+                                    fontSize:
+                                        getFontSize(result.data!.getAnswerA()),
                                   ),
                                 ),
                               ),
@@ -327,7 +383,8 @@ class _QuestionCardState extends State<QuestionCard> {
                                   result.data!.getAnswerB(),
                                   style: TextStyle(
                                     fontFamily: 'Lato',
-                                    fontSize: 16.0,
+                                    fontSize:
+                                        getFontSize(result.data!.getAnswerB()),
                                   ),
                                 ),
                               ),
@@ -356,7 +413,8 @@ class _QuestionCardState extends State<QuestionCard> {
                                   result.data!.getAnswerC(),
                                   style: TextStyle(
                                     fontFamily: 'Lato',
-                                    fontSize: 16.0,
+                                    fontSize:
+                                        getFontSize(result.data!.getAnswerC()),
                                   ),
                                 ),
                               ),
@@ -383,7 +441,8 @@ class _QuestionCardState extends State<QuestionCard> {
                                   result.data!.getAnswerD(),
                                   style: TextStyle(
                                     fontFamily: 'Lato',
-                                    fontSize: 16.0,
+                                    fontSize:
+                                        getFontSize(result.data!.getAnswerD()),
                                   ),
                                 ),
                               ),
@@ -399,11 +458,11 @@ class _QuestionCardState extends State<QuestionCard> {
           } else {
             return const Center(
                 child: SizedBox(
-              width: 150,
-              height: 150,
+              width: 70,
+              height: 70,
               child: CircularProgressIndicator(
                 color: kMainLightColor,
-                strokeWidth: 12,
+                strokeWidth: 5,
               ),
             ));
           }
@@ -413,8 +472,8 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   Widget buildTimer() => SizedBox(
-        width: 150,
-        height: 150,
+        width: 70,
+        height: 70,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -434,7 +493,7 @@ class _QuestionCardState extends State<QuestionCard> {
   Widget buildTime() {
     return Text(
       '$seconds',
-      style: kWelcomeScreenTitleTextStyle,
+      style: kWelcomeScreenTitleTextStyle.copyWith(fontSize: 32.0),
     );
   }
 }
