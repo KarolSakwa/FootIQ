@@ -26,7 +26,8 @@ class QuestionController {
         answerC: 'answerC',
         answerD: 'answerD',
         correctAnswer: 'correctAnswer',
-        questionCode: 'questionCode');
+        questionCode: 'questionCode',
+        difficulty: 1);
     if (questionNum < questionListLength) {
       question = await QuestionBase().getQuestionList();
       questionListLength = question.length;
@@ -38,7 +39,8 @@ class QuestionController {
           answerD: question[questionNumber]['answerD'],
           correctAnswer: question[questionNumber]['correctAnswer'],
           imgSrc: question[questionNumber]['imgSrc'],
-          questionCode: question[questionNumber]['questionCode']);
+          questionCode: question[questionNumber]['questionCode'],
+          difficulty: question[questionNumber]['difficulty']);
       return currentQuestion;
     }
     return currentQuestion;

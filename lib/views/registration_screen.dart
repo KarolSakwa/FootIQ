@@ -1,17 +1,20 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:footix/views/profile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
+import 'package:footix/models/database.dart';
+import 'package:country_picker/country_picker.dart';
 
 import 'login_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
+  final DB db = DB();
   static const String id = 'registration_screen';
+  String nationality = 'Nationality';
   final firestoreInstance = FirebaseFirestore.instance;
-  var uuid = Uuid();
   @override
   _RegistrationScreenState createState() => _RegistrationScreenState();
 }
@@ -101,6 +104,55 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ),
             Padding(
+              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+              padding: EdgeInsets.symmetric(horizontal: 15),
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    showCountryPicker(
+                      context: context,
+                      showWorldWide: false,
+                      onSelect: (Country country) {
+                        setState(() {
+                          widget.nationality = country.name;
+                        });
+                      },
+                      // Optional. Sets the theme for the country list picker.
+                      countryListTheme: CountryListThemeData(
+                        // Optional. Sets the border radius for the bottomsheet.
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(40.0),
+                          topRight: Radius.circular(40.0),
+                        ),
+                        // Optional. Styles the search field.
+                        inputDecoration: InputDecoration(
+                          labelText: 'Search',
+                          hintText: 'Start typing to search',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.red.withOpacity(0.2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        widget.nationality,
+                      ),
+                      Icon(
+                        Icons.arrow_drop_down_circle_outlined,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Padding(
               padding: const EdgeInsets.only(
                   left: 15.0, right: 15.0, top: 15, bottom: 0),
               //padding: EdgeInsets.symmetric(horizontal: 15),
@@ -157,12 +209,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                 ),
                 onPressed: () async {
+                  List<Map> competitionsMaps =
+                      await widget.db.getCollectionData('competition');
+                  print(competitionsMaps);
+                  Map<String, double> competitions = {};
+                  for (var i = 0; i < competitionsMaps.length; i++) {
+                    competitions[competitionsMaps[i]['tm_code']] = 0;
+                  }
                   try {
                     final newUser = await _auth
                         .createUserWithEmailAndPassword(
                             email: email, password: password)
                         .then((value) =>
                             value.user.updateProfile(displayName: username));
+                    widget.db.addData('users',
+                        {'email': email, 'name': username, 'exp': competitions},
+                        id: _auth.currentUser.uid);
                     Navigator.pushNamed(context, ProfileScreen.id);
                   } catch (e) {
                     print(e);

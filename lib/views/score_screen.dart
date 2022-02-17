@@ -1,9 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
+import 'package:footix/models/database.dart';
 import 'package:footix/models/question.dart';
+import 'package:footix/views/components/question_card.dart';
 
 class ScoreScreen extends StatefulWidget {
+  final _auth = FirebaseAuth.instance;
+  late User loggedInUser;
+  final db = DB();
   int getPercents(int number) {
     return ((number / userAnsweredQuestionList.length) * 100).toInt();
   }
@@ -20,6 +27,21 @@ class ScoreScreen extends StatefulWidget {
 }
 
 class _ScoreScreenState extends State<ScoreScreen> {
+  @override
+  void initState() {
+    if (widget._auth.currentUser != null) {
+      loggedInUser = widget._auth.currentUser;
+    }
+    for (var i = 0; i < widget.userAnsweredQuestionList.length; i++) {
+      if (getUserAnsweredCorrectlyQuestionList()
+          .contains(widget.userAnsweredQuestionList[i])) {
+        widget.db.incrementUserCompExp(loggedInUser.uid,
+            getQuestionCompetition(widget.userAnsweredQuestionList[i]), 1);
+      }
+    }
+    super.initState();
+  }
+
   int touchedIndex = -1;
   @override
   Widget build(BuildContext context) {
@@ -126,5 +148,11 @@ class _ScoreScreenState extends State<ScoreScreen> {
         userAnsweredCorrectlyQuestionList.add(answeredQuestion);
     }
     return userAnsweredCorrectlyQuestionList;
+  }
+
+  String getQuestionCompetition(Question question) {
+    return question
+        .getQuestionCode()
+        .substring(0, question.getQuestionCode().indexOf('_'));
   }
 }

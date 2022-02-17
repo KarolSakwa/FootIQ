@@ -10,15 +10,20 @@ import 'package:footix/controllers/question_controller.dart';
 import 'package:footix/models/question_base.dart';
 import 'package:footix/views/score_screen.dart';
 import '../quick_challenge_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:footix/models/database.dart';
 
 QuestionController questionController = QuestionController();
 
-int maxQuestionNum = 10;
+int maxQuestionNum = 3;
 List<Question> answeredQuestionList = [];
 final _random = Random();
 const maxSeconds = 15;
 int seconds = maxSeconds;
 Timer? timer;
+final _auth = FirebaseAuth.instance;
+late User loggedInUser;
+final db = DB();
 
 List<Icon> scoreKeeper = [];
 
@@ -31,7 +36,7 @@ class QuestionCard extends StatefulWidget {
 
 class _QuestionCardState extends State<QuestionCard> {
   double getFontSize(String txt) {
-    return txt.length > 20 ? 14 : 16;
+    return txt.length > 20 ? 12 : 16;
   }
 
   void startTimer() {
@@ -60,6 +65,7 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   void initState() {
+    loggedInUser = _auth.currentUser;
     questionController.questionNumber =
         _random.nextInt(questionController.questionListLength);
     startTimer();
@@ -69,6 +75,13 @@ class _QuestionCardState extends State<QuestionCard> {
   void updateState(answerText, currentQuestion) {
     questionController.questionNum++;
     setState(() {
+      Question question = currentQuestion;
+      String currentQuestionCompetition = getQuestionCompetition(question);
+      double currentQuestionExp = question.getQuestionDifficulty();
+      Map<String, dynamic> competitionExp = {
+        currentQuestionCompetition: currentQuestionExp
+      };
+      // db.updateData('users', loggedInUser.uid, 'exp', competitionExp);
       answeredQuestionList.add(currentQuestion);
       currentQuestion.setUserAnswer(answerText);
       Future.delayed(Duration(milliseconds: 0), () {
@@ -138,6 +151,7 @@ class _QuestionCardState extends State<QuestionCard> {
       Icons.check,
       color: Colors.green,
     ));
+    // znajdujemy zalogowanego użytkownika w bazie, przypisujemy do jego pola exp podpole z nazwą kategorii (rozgrywek), określoną liczbę expa\
     showDialog(
       barrierDismissible: false,
       context: context,
@@ -239,16 +253,8 @@ class _QuestionCardState extends State<QuestionCard> {
         builder: (BuildContext context, AsyncSnapshot<Question> result) {
           if (result.hasData &&
               questionController.questionNum <= maxQuestionNum) {
-            String questionSeason = result.data!.getQuestionCode().substring(
-                    result.data!.getQuestionCode().indexOf('_') + 1) +
-                '-' +
-                (int.parse(result.data!.getQuestionCode().substring(
-                            result.data!.getQuestionCode().indexOf('_') + 1)) +
-                        1)
-                    .toString();
-            String questionCompetition = result.data!
-                .getQuestionCode()
-                .substring(0, result.data!.getQuestionCode().indexOf('_'));
+            String questionSeason = getQuestionSeason(result.data!);
+            String questionCompetition = getQuestionCompetition(result.data!);
             return SizedBox(
               height: MediaQuery.of(context).size.height * 0.7,
               child: Column(
@@ -495,5 +501,23 @@ class _QuestionCardState extends State<QuestionCard> {
       '$seconds',
       style: kWelcomeScreenTitleTextStyle.copyWith(fontSize: 32.0),
     );
+  }
+
+  String getQuestionSeason(Question question) {
+    return question
+            .getQuestionCode()
+            .substring(question.getQuestionCode().indexOf('_') + 1) +
+        '-' +
+        (int.parse(question
+                    .getQuestionCode()
+                    .substring(question.getQuestionCode().indexOf('_') + 1)) +
+                1)
+            .toString();
+  }
+
+  String getQuestionCompetition(Question question) {
+    return question
+        .getQuestionCode()
+        .substring(0, question.getQuestionCode().indexOf('_'));
   }
 }

@@ -22,6 +22,9 @@ dependencies:
   path_provider: ^1.6.5
   fl_chart: ^0.41.0
   uuid: ^3.0.5
+  flutter_radar_chart: ^0.2.0
+  country_picker: ^2.0.11
+
 
 dev_dependencies:
   flutter_test:
