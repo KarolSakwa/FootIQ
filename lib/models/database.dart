@@ -15,6 +15,19 @@ class DB {
     return fieldList;
   }
 
+  Future<dynamic> getCollectionDataField(
+      String collection, String field, String fieldValue) async {
+    var collectionDataField;
+    await firestoreInstance
+        .collection(collection)
+        .where(field, isEqualTo: fieldValue)
+        .get()
+        .then((value) {
+      collectionDataField = value.docs[0].data();
+    });
+    return collectionDataField;
+  }
+
 // creates new field and assigning value to it
   void addData(String collection, Map<String, dynamic> data, {String? id}) {
     if (id == null) {

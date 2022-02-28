@@ -84,7 +84,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
             Padding(
               //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-              padding: EdgeInsets.symmetric(horizontal: 15),
+              padding: EdgeInsets.only(bottom: 15, left: 15, right: 15),
               child: TextField(
                 style: TextStyle(color: kMainLightColor),
                 cursorColor: kMainLightColor,
@@ -107,47 +107,59 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
               padding: EdgeInsets.symmetric(horizontal: 15),
               child: Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    showCountryPicker(
-                      context: context,
-                      showWorldWide: false,
-                      onSelect: (Country country) {
-                        setState(() {
-                          widget.nationality = country.name;
-                        });
-                      },
-                      // Optional. Sets the theme for the country list picker.
-                      countryListTheme: CountryListThemeData(
-                        // Optional. Sets the border radius for the bottomsheet.
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(40.0),
-                          topRight: Radius.circular(40.0),
-                        ),
-                        // Optional. Styles the search field.
-                        inputDecoration: InputDecoration(
-                          labelText: 'Search',
-                          hintText: 'Start typing to search',
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.red.withOpacity(0.2),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints.tightFor(height: 60),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      showCountryPicker(
+                        context: context,
+                        showWorldWide: false,
+                        onSelect: (Country country) {
+                          setState(() {
+                            widget.nationality = country.name;
+                          });
+                        },
+                        // Optional. Sets the theme for the country list picker.
+                        countryListTheme: CountryListThemeData(
+                          // Optional. Sets the border radius for the bottomsheet.
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(40.0),
+                            topRight: Radius.circular(40.0),
+                          ),
+                          // Optional. Styles the search field.
+                          inputDecoration: InputDecoration(
+                            labelText: 'Search',
+                            hintText: 'Start typing to search',
+                            prefixIcon: const Icon(Icons.search),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.red.withOpacity(0.2),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        widget.nationality,
-                      ),
-                      Icon(
-                        Icons.arrow_drop_down_circle_outlined,
-                      ),
-                    ],
+                      );
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          widget.nationality,
+                          style:
+                              TextStyle(color: kMainLightColor, fontSize: 14),
+                        ),
+                        Icon(
+                          Icons.arrow_drop_down_circle_outlined,
+                        ),
+                      ],
+                    ),
+                    style: ButtonStyle(
+                        side: MaterialStateProperty.all<BorderSide>(BorderSide(
+                          width: 1.0,
+                          color: kMainLightColor,
+                        )),
+                        backgroundColor:
+                            MaterialStateProperty.all<Color>(kMainDarkColor)),
                   ),
                 ),
               ),
