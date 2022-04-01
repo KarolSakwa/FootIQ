@@ -65,7 +65,7 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   void initState() {
-    loggedInUser = _auth.currentUser;
+    loggedInUser = _auth.currentUser!;
     questionController.questionNumber =
         _random.nextInt(questionController.questionListLength);
     startTimer();
@@ -81,15 +81,16 @@ class _QuestionCardState extends State<QuestionCard> {
       Map<String, dynamic> competitionExp = {
         currentQuestionCompetition: currentQuestionExp
       };
-      // db.updateData('users', loggedInUser.uid, 'exp', competitionExp);
       answeredQuestionList.add(currentQuestion);
       currentQuestion.setUserAnswer(answerText);
       Future.delayed(Duration(milliseconds: 0), () {
         // 3000?
-        if (answerText == currentQuestion.getCorrectAnswer())
+        if (answerText == currentQuestion.getCorrectAnswer()) {
           correctAnswerActions();
-        else {
+          updateAnsweredQuestions(currentQuestion.getID(), true);
+        } else {
           inCorrectAnswerActions();
+          updateAnsweredQuestions(currentQuestion.getID(), false);
         }
       });
     });
@@ -519,5 +520,23 @@ class _QuestionCardState extends State<QuestionCard> {
     return question
         .getQuestionCode()
         .substring(0, question.getQuestionCode().indexOf('_'));
+  }
+
+  updateAnsweredQuestions(questionID, correctAnswer) async {
+    var answeredQuestions =
+        await db.getFieldData('users', loggedInUser.uid, 'answeredQuestions');
+    int correctAnswers = 0;
+    if (!answeredQuestions.containsKey(questionID)) {
+      correctAnswers = correctAnswer ? 1 : 0;
+      db.addMapData('users', loggedInUser.uid, 'answeredQuestions', {
+        questionID: {'askedTimes': 1, 'answeredCorrectly': correctAnswers}
+      });
+    } else {
+      correctAnswers = correctAnswer ? 1 : 0;
+      db.incrementMapValue('users', loggedInUser.uid, 'answeredQuestions',
+          questionID, 1, 'askedTimes');
+      db.incrementMapValue('users', loggedInUser.uid, 'answeredQuestions',
+          questionID, correctAnswers.toDouble(), 'answeredCorrectly');
+    }
   }
 }

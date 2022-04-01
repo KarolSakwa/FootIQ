@@ -3,7 +3,7 @@ import 'question.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class QuestionBase {
-  final String _questionDBCollection = 'final_questions';
+  final String _questionDBCollection = 'new_final_questions';
 
   final firestoreInstance = FirebaseFirestore.instance;
 
@@ -15,6 +15,7 @@ class QuestionBase {
         .then((querySnapshot) {
       for (var result in querySnapshot.docs) {
         questionList.add({
+          'ID': result.data()['ID'],
           'questionText': result.data()['question_text'],
           'answerA': result.data()['answer_a'],
           'answerB': result.data()['answer_b'],

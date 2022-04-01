@@ -30,7 +30,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
   @override
   void initState() {
     if (widget._auth.currentUser != null) {
-      loggedInUser = widget._auth.currentUser;
+      loggedInUser = widget._auth.currentUser!;
     }
     for (var i = 0; i < widget.userAnsweredQuestionList.length; i++) {
       if (getUserAnsweredCorrectlyQuestionList()

@@ -16,7 +16,7 @@ class AdminScreen extends StatefulWidget {
 class _AdminScreenState extends State<AdminScreen> {
   void initState() {
     Admin admin = Admin();
-    //admin.IQTDBscorersByCompetitionSeason();
+    admin.IQTDBscorersByCompetitionSeason();
 
     // Future competitions = admin.getCollectionData('competition');
     // competitions.then((val) {

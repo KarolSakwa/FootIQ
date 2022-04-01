@@ -25,28 +25,34 @@ class FootiX9 extends StatelessWidget {
       new GlobalKey<NavigatorState>();
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        scaffoldBackgroundColor: kMainDarkColor,
-        backgroundColor: kMainDarkColor,
-        primaryColor: kMainMediumColor,
-        primaryColorLight: kMainLightColor,
-        primaryColorDark: kMainDarkColor,
-        fontFamily: 'Lato',
-      ),
-      initialRoute: MainScreen.id,
-      routes: {
-        MainScreen.id: (context) => MainScreen(),
-        WelcomeScreen.id: (context) => WelcomeScreen(),
-        QuickChallengeScreen.id: (context) => QuickChallengeScreen(),
-        ScoreScreen.id: (context) => ScoreScreen(),
-        LoginScreen.id: (context) => LoginScreen(),
-        RegistrationScreen.id: (context) => RegistrationScreen(),
-        ProfileScreen.id: (context) => ProfileScreen(),
-        AdminScreen.id: (context) => AdminScreen(),
+    return ChangeNotifierProvider(
+      create: (BuildContext context) {
+        MainScreen();
       },
-      title: kAppName,
-      navigatorKey: navigatorKey,
+      child: MaterialApp(
+        theme: ThemeData(
+          scaffoldBackgroundColor: kMainDarkColor,
+          backgroundColor: kMainDarkColor,
+          primaryColor: kMainMediumColor,
+          primaryColorLight: kMainLightColor,
+          primaryColorDark: kMainDarkColor,
+          fontFamily: 'Lato',
+        ),
+        initialRoute: MainScreen.id,
+        routes: {
+          MainScreen.id: (context) => MainScreen(),
+          WelcomeScreen.id: (context) => WelcomeScreen(),
+          QuickChallengeScreen.id: (context) => QuickChallengeScreen(),
+          ScoreScreen.id: (context) => ScoreScreen(),
+          LoginScreen.id: (context) => LoginScreen(),
+          RegistrationScreen.id: (context) => RegistrationScreen(),
+          ProfileScreen.id: (context) => ProfileScreen(),
+          //DashboardScreen.id: (context) => DashboardScreen(),
+          AdminScreen.id: (context) => AdminScreen(),
+        },
+        title: kAppName,
+        navigatorKey: navigatorKey,
+      ),
     );
   }
 }

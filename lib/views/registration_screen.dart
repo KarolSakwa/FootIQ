@@ -232,11 +232,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     final newUser = await _auth
                         .createUserWithEmailAndPassword(
                             email: email, password: password)
-                        .then((value) =>
-                            value.user.updateProfile(displayName: username));
-                    widget.db.addData('users',
-                        {'email': email, 'name': username, 'exp': competitions},
-                        id: _auth.currentUser.uid);
+                        .then(
+                            (value) => value.user!.updateDisplayName(username));
+                    widget.db.addData(
+                        'users',
+                        {
+                          'email': email,
+                          'name': username,
+                          'exp': competitions,
+                          'answeredQuestions': {}
+                        },
+                        id: _auth.currentUser!.uid);
                     Navigator.pushNamed(context, ProfileScreen.id);
                   } catch (e) {
                     print(e);

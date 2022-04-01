@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 class Question {
   String _imgSrc = '',
+      _ID = '',
       _questionText = '',
       _answerA = '',
       _answerB = '',
@@ -16,6 +17,7 @@ class Question {
   Question(
       {String imgSrc = '',
       String questionCategory = '',
+      required String ID,
       required String questionText,
       required String answerA,
       required String answerB,
@@ -26,6 +28,7 @@ class Question {
       String userAnswer = '',
       required double difficulty}) {
     this._imgSrc = imgSrc;
+    this._ID = ID;
     this._questionText = questionText;
     this._answerA = answerA;
     this._answerB = answerB;
@@ -40,6 +43,10 @@ class Question {
 
   String getImgSrc() {
     return _imgSrc;
+  }
+
+  String getID() {
+    return _ID;
   }
 
   String getQuestionText() {

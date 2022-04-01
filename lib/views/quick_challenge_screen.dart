@@ -15,7 +15,7 @@ class QuickChallengeScreen extends StatefulWidget {
 class _QuickChallengeScreenState extends State<QuickChallengeScreen> {
   void initState() {
     if (widget._auth.currentUser != null) {
-      widget.loggedInUsername = widget._auth.currentUser.displayName;
+      widget.loggedInUsername = widget._auth.currentUser!.displayName!;
     }
     super.initState();
   }

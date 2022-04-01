@@ -8,9 +8,12 @@ import 'package:image/image.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as Path;
 
+import 'database.dart';
+
 class Admin {
   final firestoreInstance = FirebaseFirestore.instance;
   final _random = new Random();
+  final db = DB();
 
   // random string generator
   static const _chars =
@@ -24,25 +27,6 @@ class Admin {
 
   String competitionProfileUrl =
       '/premier-league/startseite/wettbewerb/|competition|';
-  //
-
-  Future<dynamic> getCollectionData(String collection) async {
-    Map collectionMap = {};
-    await firestoreInstance.collection(collection).get().then((querySnapshot) {
-      for (var result in querySnapshot.docs) {
-        Map fieldDict = collectionMap[result
-            .data()['tm_code']]; // just because it will be easier to read later
-        fieldDict = {};
-        //print(fieldDict);
-        for (var i = 0; i < result.data().length; i++) {
-          fieldDict[result.data().keys.toList()[i]] =
-              result.data().values.toList()[i];
-        }
-        collectionMap[result.data()['tm_code']] = fieldDict;
-      }
-    });
-    return collectionMap;
-  }
 
   // FUNCTIONS INSERTING QUESTIONS
 
@@ -51,7 +35,7 @@ class Admin {
 
     int firstSeason = 1992;
     int lastSeason = 2020;
-    Map competitions = await getCollectionData('competition');
+    List<Map> competitions = await db.getCollectionData('competition');
     List<int> seasons = [];
     for (var i = firstSeason; i <= lastSeason; i++) {
       seasons.add(i);
@@ -59,18 +43,19 @@ class Admin {
 
     final webScraper = WebScraper('https://www.transfermarkt.com');
     String docCode = '';
-    for (var competition in competitions.keys) {
+    for (var i = 0; i < competitions.length; i++) {
+      Map currentCompetition = competitions[i];
+      String currentCompetitionCode = competitions[i]['tm_code'];
       for (var season in seasons) {
         String competitionScorersUrl =
             '/premier-league/torschuetzenliste/wettbewerb/|competition|/saison_id/|season|';
         String docID = getRandomString(20);
-        docCode = competition + '_' + season.toString();
-        double difficulty = double.parse((competitions[competition]
-                    ['reputation'] +
-                getYearDifficultyRating(season))
-            .toStringAsExponential(1));
-        competitionScorersUrl =
-            competitionScorersUrl.replaceAll('|competition|', competition);
+        docCode = currentCompetitionCode + '_' + season.toString();
+        double difficulty = double.parse(
+            (currentCompetition['reputation'] + getYearDifficultyRating(season))
+                .toStringAsExponential(1));
+        competitionScorersUrl = competitionScorersUrl.replaceAll(
+            '|competition|', currentCompetitionCode);
         competitionScorersUrl =
             competitionScorersUrl.replaceAll('|season|', season.toString());
         if (await webScraper.loadWebPage(competitionScorersUrl)) {
@@ -101,22 +86,23 @@ class Admin {
             }
             // DODAJĘ TEKST PYTANIA I POPRAWNĄ ODP
             DataMap["question_text"] = questionText;
-            // firestoreInstance.collection('final_questions').doc(docID).set({
-            //   'correct_answer': DataMap['correct_answer'],
-            //   'answer_a': DataMap['answer_a'],
-            //   'answer_b': DataMap['answer_b'],
-            //   'answer_c': DataMap['answer_c'],
-            //   'answer_d': DataMap['answer_d'],
-            //   'question_text': DataMap['question_text'],
-            //   'docCode': docCode,
-            //   'difficulty': difficulty
-            // });
+            firestoreInstance.collection('new_final_questions').doc(docID).set({
+              'ID': docID,
+              'correct_answer': DataMap['correct_answer'],
+              'answer_a': DataMap['answer_a'],
+              'answer_b': DataMap['answer_b'],
+              'answer_c': DataMap['answer_c'],
+              'answer_d': DataMap['answer_d'],
+              'question_text': DataMap['question_text'],
+              'docCode': docCode,
+              'difficulty': difficulty
+            });
           }
 
           String questionBase =
               'Who scored the most goals in |competition| |season| season?';
           questionBase = questionBase.replaceAll(
-              '|competition|', competitions[competition]['tm_code']);
+              '|competition|', currentCompetition['name']);
           questionBase = questionBase.replaceAll(
               '|season|', season.toString() + '-' + (season + 1).toString());
           addUser(questionBase);
@@ -125,6 +111,74 @@ class Admin {
         }
       }
     }
+
+    ///////////////////////////////////
+    // for (var competition in competitions.keys) {
+    //   for (var season in seasons) {
+    //     String competitionScorersUrl =
+    //         '/premier-league/torschuetzenliste/wettbewerb/|competition|/saison_id/|season|';
+    //     String docID = getRandomString(20);
+    //     docCode = competition + '_' + season.toString();
+    //     double difficulty = double.parse((competitions[competition]
+    //                 ['reputation'] +
+    //             getYearDifficultyRating(season))
+    //         .toStringAsExponential(1));
+    //     competitionScorersUrl =
+    //         competitionScorersUrl.replaceAll('|competition|', competition);
+    //     competitionScorersUrl =
+    //         competitionScorersUrl.replaceAll('|season|', season.toString());
+    //     if (await webScraper.loadWebPage(competitionScorersUrl)) {
+    //       final playersUnits = webScraper.getElement(
+    //           '#yw1 > table > tbody > tr > td.zentriert.hauptlink > a',
+    //           ['title']);
+    //       var playersList = [playersUnits[0]];
+    //       // SPRAWDZAM, CZY DRUGI NAJLEPSZY NA PEWNO MA MNIEJ OD PIERWSZEGO - JEŚLI TYLE SAMO, TO GO NIE UWZGLĘDNIAM
+    //       for (var player in playersUnits.sublist(1, 10)) {
+    //         if (int.parse(player['title']) <
+    //             int.parse(playersUnits[0]['title'])) {
+    //           playersList.add(player);
+    //         }
+    //       }
+    //       var finalList = playersList.take(4);
+    //
+    //       Future<void> addUser(questionText) async {
+    //         List<String> answerList = ['a', 'b', 'c', 'd'];
+    //
+    //         // DODAJĘ OPCJE ODPOWIEDZI
+    //         Map DataMap = {
+    //           'correct_answer': playersList[0]['attributes']['title']
+    //         };
+    //         for (var player in finalList) {
+    //           var element = answerList[_random.nextInt(answerList.length)];
+    //           DataMap["answer_$element"] = player['attributes']['title'];
+    //           answerList.remove(element);
+    //         }
+    //         // DODAJĘ TEKST PYTANIA I POPRAWNĄ ODP
+    //         DataMap["question_text"] = questionText;
+    //         firestoreInstance.collection('new_final_questions').doc(docID).set({
+    //           'correct_answer': DataMap['correct_answer'],
+    //           'answer_a': DataMap['answer_a'],
+    //           'answer_b': DataMap['answer_b'],
+    //           'answer_c': DataMap['answer_c'],
+    //           'answer_d': DataMap['answer_d'],
+    //           'question_text': DataMap['question_text'],
+    //           'docCode': docCode,
+    //           'difficulty': difficulty
+    //         });
+    //       }
+    //
+    //       String questionBase =
+    //           'Who scored the most goals in |competition| |season| season?';
+    //       questionBase = questionBase.replaceAll(
+    //           '|competition|', competitions[competition]['tm_code']);
+    //       questionBase = questionBase.replaceAll(
+    //           '|season|', season.toString() + '-' + (season + 1).toString());
+    //       addUser(questionBase);
+    //     } else {
+    //       print('Cannot load url');
+    //     }
+    //   }
+    // }
   }
 
   // HELPERS

@@ -20,6 +20,7 @@ class QuestionController {
     indexList.remove(questionNumber);
     List<Map> question;
     Question currentQuestion = Question(
+        ID: 'ID',
         questionText: 'questionText',
         answerA: 'answerA',
         answerB: 'answerB',
@@ -32,6 +33,7 @@ class QuestionController {
       question = await QuestionBase().getQuestionList();
       questionListLength = question.length;
       currentQuestion = Question(
+          ID: question[questionNumber]['ID'],
           questionText: question[questionNumber]['questionText'],
           answerA: question[questionNumber]['answerA'],
           answerB: question[questionNumber]['answerB'],
