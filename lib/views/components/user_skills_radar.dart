@@ -63,35 +63,37 @@ class _UserSkillsRadarState extends State<UserSkillsRadar> {
     List<int> ticks = getTicksList(competitionsMaximumExpList, 3);
     Map dataMap = getLoggedInUserExpMap(
         snapshot.data[1], snapshot.data[2], snapshot.data[0]);
-    return SizedBox(
-      width: widget.width,
-      height: widget.height,
-      child: Container(
-          color: Colors.transparent,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: kMainDefaultPadding),
-                child: Text(
-                  'Your knowledge'.toUpperCase(),
-                  style: const TextStyle(
-                      color: kMainLightColor,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700),
+    return SafeArea(
+      child: SizedBox(
+        width: widget.width,
+        height: widget.height,
+        child: Container(
+            color: Colors.transparent,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: kMainDefaultPadding),
+                  child: Text(
+                    'Your knowledge'.toUpperCase(),
+                    style: const TextStyle(
+                        color: kMainLightColor,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700),
+                  ),
                 ),
-              ),
-              Expanded(
-                  child: RadarChart.dark(
-                ticks: ticks,
-                features: dataMap['names'],
-                data: [dataMap['userExp']],
-                reverseAxis: false,
-                useSides: true,
-              )),
-            ],
-          )),
+                Expanded(
+                    child: RadarChart.dark(
+                  ticks: ticks,
+                  features: dataMap['names'],
+                  data: [dataMap['userExp']],
+                  reverseAxis: false,
+                  useSides: true,
+                )),
+              ],
+            )),
+      ),
     );
   }
 

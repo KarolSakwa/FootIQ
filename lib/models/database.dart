@@ -33,7 +33,7 @@ class DB {
   }
 
   Future<dynamic> getFieldData(
-      String collection, String documentID, String fieldName) async {
+      String collection, String? documentID, String fieldName) async {
     var collectionDataField;
     await firestoreInstance
         .collection(collection)

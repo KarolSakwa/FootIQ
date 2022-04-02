@@ -1,15 +1,11 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:footix/models/question.dart';
 import 'package:footix/controllers/question_controller.dart';
-import 'package:footix/models/question_base.dart';
 import 'package:footix/views/score_screen.dart';
-import '../quick_challenge_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:footix/models/database.dart';
 
@@ -24,7 +20,6 @@ Timer? timer;
 final _auth = FirebaseAuth.instance;
 late User loggedInUser;
 final db = DB();
-
 List<Icon> scoreKeeper = [];
 
 class QuestionCard extends StatefulWidget {
@@ -35,24 +30,6 @@ class QuestionCard extends StatefulWidget {
 }
 
 class _QuestionCardState extends State<QuestionCard> {
-  double getFontSize(String txt) {
-    return txt.length > 20 ? 12 : 16;
-  }
-
-  void startTimer() {
-    seconds = maxSeconds;
-    timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (seconds > 0) {
-        setState(() {
-          seconds--;
-        });
-      } else {
-        timer!.cancel();
-        timesUpActions();
-      }
-    });
-  }
-
   ButtonStyle initialButtonStyle = ButtonStyle(
     foregroundColor: MaterialStateProperty.all<Color>(kMainLightColor),
     backgroundColor: MaterialStateProperty.all<Color>(kMainMediumColor),
@@ -76,11 +53,6 @@ class _QuestionCardState extends State<QuestionCard> {
     questionController.questionNum++;
     setState(() {
       Question question = currentQuestion;
-      String currentQuestionCompetition = getQuestionCompetition(question);
-      double currentQuestionExp = question.getQuestionDifficulty();
-      Map<String, dynamic> competitionExp = {
-        currentQuestionCompetition: currentQuestionExp
-      };
       answeredQuestionList.add(currentQuestion);
       currentQuestion.setUserAnswer(answerText);
       Future.delayed(Duration(milliseconds: 0), () {
@@ -538,5 +510,23 @@ class _QuestionCardState extends State<QuestionCard> {
       db.incrementMapValue('users', loggedInUser.uid, 'answeredQuestions',
           questionID, correctAnswers.toDouble(), 'answeredCorrectly');
     }
+  }
+
+  void startTimer() {
+    seconds = maxSeconds;
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (seconds > 0) {
+        setState(() {
+          seconds--;
+        });
+      } else {
+        timer!.cancel();
+        timesUpActions();
+      }
+    });
+  }
+
+  double getFontSize(String txt) {
+    return txt.length > 20 ? 12 : 16;
   }
 }
