@@ -7,11 +7,14 @@ import 'package:footix/models/database.dart';
 import 'package:footix/models/question.dart';
 import 'package:footix/views/components/question_card.dart';
 
+import 'dashboard/components/user_answer_correctneess_pie_chart.dart';
+
 class ScoreScreen extends StatefulWidget {
   final _auth = FirebaseAuth.instance;
   late User loggedInUser;
   final db = DB();
   int getPercents(int number) {
+    if (number == 0) return 0;
     return ((number / userAnsweredQuestionList.length) * 100).toInt();
   }
 
@@ -73,66 +76,11 @@ class _ScoreScreenState extends State<ScoreScreen> {
               SizedBox(
                   width: 300,
                   height: 300,
-                  child: PieChart(
-                    PieChartData(
-                        pieTouchData: PieTouchData(touchCallback:
-                            (FlTouchEvent event, pieTouchResponse) {
-                          setState(() {
-                            if (!event.isInterestedForInteractions ||
-                                pieTouchResponse == null ||
-                                pieTouchResponse.touchedSection == null) {
-                              touchedIndex = -1;
-                              return;
-                            }
-                            touchedIndex = pieTouchResponse
-                                .touchedSection!.touchedSectionIndex;
-                          });
-                        }),
-                        borderData: FlBorderData(
-                          show: false,
-                        ),
-                        sectionsSpace: 2,
-                        centerSpaceRadius: 50,
-                        sections: [
-                          PieChartSectionData(
-                              radius: 80,
-                              title: widget
-                                      .getPercents(
-                                          getUserAnsweredCorrectlyQuestionList()
-                                              .length)
-                                      .toString() +
-                                  '%',
-                              titleStyle: TextStyle(
-                                  fontSize: 30,
-                                  color: kMainLightColor,
-                                  fontWeight: FontWeight.bold),
-                              color: Colors.green,
-                              value: getUserAnsweredCorrectlyQuestionList()
-                                  .length
-                                  .toDouble()),
-                          PieChartSectionData(
-                              radius: 80,
-                              title: widget
-                                      .getPercents(widget
-                                              .userAnsweredQuestionList.length -
-                                          getUserAnsweredCorrectlyQuestionList()
-                                              .length)
-                                      .toString() +
-                                  '%',
-                              titleStyle: TextStyle(
-                                  fontSize: 30,
-                                  color: kMainLightColor,
-                                  fontWeight: FontWeight.bold),
-                              color: Colors.redAccent,
-                              value: widget.userAnsweredQuestionList.length -
-                                  getUserAnsweredCorrectlyQuestionList()
-                                      .length
-                                      .toDouble())
-                        ]),
-                    swapAnimationDuration:
-                        Duration(milliseconds: 150), // Optional
-                    swapAnimationCurve: Curves.linear, // Optional
-                  ))
+                  child: UserAnswerCorrectnessPieChart(
+                      correctAnswers:
+                          getUserAnsweredCorrectlyQuestionList().length,
+                      incorrectAnswers: widget.userAnsweredQuestionList.length -
+                          getUserAnsweredCorrectlyQuestionList().length))
             ],
           ),
         ),

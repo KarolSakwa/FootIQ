@@ -30,3 +30,4 @@ var kAnswerButtonStyle = ButtonStyle(
   backgroundColor: MaterialStateProperty.all<Color>(kMainMediumColor),
 );
 double difficultyExpMultiplier = 2;
+String kNoAnsweredQuestions = 'You haven\'t answered any questions yet!';

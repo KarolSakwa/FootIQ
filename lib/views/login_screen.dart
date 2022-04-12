@@ -2,7 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:footix/views/profile_screen.dart';
+import 'package:footix/views/dashboard/profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id = 'login_screen';

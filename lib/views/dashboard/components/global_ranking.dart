@@ -3,23 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:footix/models/database.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../../../contants.dart';
-import '../../profile_screen.dart';
+import '../profile_screen.dart';
 
-class GlobalRank extends StatefulWidget {
+class GlobalRanking extends StatefulWidget {
   int?
       adjacentElemNum; // by default will show one user above and one user below logged user
-  GlobalRank({Key? key, this.adjacentElemNum = 1}) : super(key: key);
+  GlobalRanking({Key? key, this.adjacentElemNum = 1}) : super(key: key);
   final db = DB();
   final ItemScrollController _scrollController = ItemScrollController();
 
   @override
-  _GlobalRankState createState() => _GlobalRankState();
+  _GlobalRankingState createState() => _GlobalRankingState();
 }
 
-class _GlobalRankState extends State<GlobalRank> {
+class _GlobalRankingState extends State<GlobalRanking> {
   @override
   Widget build(BuildContext context) {
-    Future<List<Map>> getGlobalRank() async {
+    Future<List<Map>> getGlobalRanking() async {
       List<Map> allUsersSorted = await widget.db.getCollectionData("users");
       allUsersSorted.sort((m1, m2) {
         double totalM1 = 0;
@@ -34,11 +34,12 @@ class _GlobalRankState extends State<GlobalRank> {
         if (r != 0) return r;
         return totalM1.compareTo(totalM2);
       });
+      //print(allUsersSorted);
       return allUsersSorted;
     }
 
     Future<List<Map>> getShortRank(String email) async {
-      var fullRank = await getGlobalRank();
+      var fullRank = await getGlobalRanking();
       int userRank = getUserRank(fullRank, email);
       widget.adjacentElemNum = widget.adjacentElemNum! < fullRank.length / 2
           ? widget.adjacentElemNum
@@ -66,7 +67,7 @@ class _GlobalRankState extends State<GlobalRank> {
             : otherUser['email'];
 
     return FutureBuilder<List>(
-      future: Future.wait([getGlobalRank(), getShortRank(userEmail)]),
+      future: Future.wait([getGlobalRanking(), getShortRank(userEmail)]),
       builder: (context, snapshot) {
         var fullRank = snapshot.data?[0] ?? [];
         var shortRank = snapshot.data?[1] ?? [];
@@ -82,6 +83,13 @@ class _GlobalRankState extends State<GlobalRank> {
                 itemBuilder: (_, int position) {
                   position = position < 0 ? 0 : position;
                   final item = shortRank[position];
+
+                  TextStyle style = TextStyle(
+                      color: kMainLightColor,
+                      fontSize: 20,
+                      fontWeight: position == highlightIndex
+                          ? FontWeight.bold
+                          : FontWeight.normal);
                   return GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: () {
@@ -91,20 +99,34 @@ class _GlobalRankState extends State<GlobalRank> {
                               'name': item['name']
                             });
                       },
-                      child: Card(
-                        child: ListTile(
-                          tileColor: position == highlightIndex
-                              ? kMainMediumColor
-                              : kMainGreyColor,
-                          title: Text(
-                            '${getUserRank(fullRank, item['email']) + 1}. ${item['name']} - ${getMapSum(item['exp'])}',
-                            style: TextStyle(
-                                color: kMainLightColor,
-                                fontWeight: position == highlightIndex
-                                    ? FontWeight.bold
-                                    : FontWeight.normal),
-                          ),
-                        ),
+                      child: FutureBuilder(
+                        future: widget.db.getAnswerCorrectnessMap(item['ID']),
+                        builder: (context, userAnswerCorrectnessData) {
+                          Map userAnswerCorrectnessMap =
+                              userAnswerCorrectnessData.data as Map;
+                          int userAnswerCorrectness =
+                              ((userAnswerCorrectnessMap[
+                                              'answeredCorrectlyTotal'] /
+                                          userAnswerCorrectnessMap[
+                                              'askedTimesTotal']) *
+                                      100)
+                                  .round();
+                          return Card(
+                            child: ListTile(
+                              tileColor: position == highlightIndex
+                                  ? kMainMediumColor
+                                  : kMainGreyColor,
+                              title: Text(
+                                '${getUserRank(fullRank, item['email']) + 1}. ${item['name'].toUpperCase()} | ${getMapSum(item['exp']).toInt()} EXP | Correctness: $userAnswerCorrectness%',
+                                style: TextStyle(
+                                    color: kMainLightColor,
+                                    fontWeight: position == highlightIndex
+                                        ? FontWeight.bold
+                                        : FontWeight.normal),
+                              ),
+                            ),
+                          );
+                        },
                       ));
                 },
               )

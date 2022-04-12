@@ -6,35 +6,44 @@ import 'package:flutter/material.dart';
 import '../../../models/database.dart';
 
 class UserAnswerCorrectnessPieChart extends StatelessWidget {
-  UserAnswerCorrectnessPieChart({Key? key}) : super(key: key);
-  final _auth = FirebaseAuth.instance;
-  final db = DB();
+  int? correctAnswers;
+  int? incorrectAnswers;
+  double? chartRadius;
+  UserAnswerCorrectnessPieChart(
+      {Key? key,
+      required this.correctAnswers,
+      required this.incorrectAnswers,
+      this.chartRadius})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: getAnswerCorrectnessMap(),
-        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-          double correct = snapshot.data['answeredCorrectlyTotal'];
-          double totalQuestions = snapshot.data['askedTimesTotal'];
-          double incorrect = totalQuestions - correct;
-          int answerCorrectnessPercentage =
-              ((correct / totalQuestions) * 100).round();
-          return Center(
-              child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: kMainDefaultPadding),
-            child: PieChart(
+    var answerCorrectnessPercentage =
+        correctAnswers != 0 || incorrectAnswers != 0
+            ? ((correctAnswers! / (correctAnswers! + incorrectAnswers!)) * 100)
+                .round()
+            : null;
+    print(correctAnswers);
+    chartRadius ??= MediaQuery.of(context).size.width / 3.2;
+    return Center(
+        child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: kMainDefaultPadding),
+      child: answerCorrectnessPercentage == null
+          ? Text(
+              kNoAnsweredQuestions,
+              style: kWelcomeScreenTitleTextStyle.copyWith(fontSize: 14),
+            )
+          : PieChart(
               centerText: answerCorrectnessPercentage.toString() + '%',
               centerTextStyle:
                   kWelcomeScreenTitleTextStyle.copyWith(fontSize: 25),
               dataMap: {
-                //'d': 2
-                'correct': correct,
-                'incorrect': incorrect
+                'correct': correctAnswers!.toDouble(),
+                'incorrect': incorrectAnswers!.toDouble()
               },
               animationDuration: const Duration(milliseconds: 800),
               chartLegendSpacing: 32,
-              chartRadius: MediaQuery.of(context).size.width / 3.2,
+              chartRadius: chartRadius,
               colorList: const [
                 kMainLightColor,
                 Colors.transparent,
@@ -63,28 +72,6 @@ class UserAnswerCorrectnessPieChart extends StatelessWidget {
               // gradientList: ---To add gradient colors---
               // emptyColorGradient: ---Empty Color gradient---
             ),
-          ));
-        });
-  }
-
-  getAnswerCorrectnessMap() async {
-    var answerCorrectnessRaw = await db.getFieldData(
-        'users', _auth.currentUser?.uid, 'answeredQuestions');
-    List keys = answerCorrectnessRaw.keys.toList();
-    Map<String, double> answerCorrectness = {
-      'askedTimesTotal': 0,
-      'answeredCorrectlyTotal': 0
-    };
-    for (var i = 0; i < answerCorrectnessRaw.length; i++) {
-      double askedTimes =
-          answerCorrectnessRaw[keys[i]]['askedTimes'].toDouble();
-      double answeredCorrectly =
-          answerCorrectnessRaw[keys[i]]['answeredCorrectly'].toDouble();
-      answerCorrectness['askedTimesTotal'] =
-          (answerCorrectness['askedTimesTotal']! + askedTimes);
-      answerCorrectness['answeredCorrectlyTotal'] =
-          (answerCorrectness['answeredCorrectlyTotal']! + answeredCorrectly);
-    }
-    return answerCorrectness;
+    ));
   }
 }

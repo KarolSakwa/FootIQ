@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:footix/views/admin_screen.dart';
+import 'package:footix/views/dashboard/answer_correctness_screen.dart';
 import 'package:footix/views/main_screen.dart';
 import 'package:provider/provider.dart';
 import 'views/welcome_screen.dart';
@@ -8,7 +9,7 @@ import 'views/login_screen.dart';
 import 'views/registration_screen.dart';
 import 'views/quick_challenge_screen.dart';
 import 'views/score_screen.dart';
-import 'package:footix/views/profile_screen.dart';
+import 'package:footix/views/dashboard/profile_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -49,6 +50,8 @@ class FootiX9 extends StatelessWidget {
           ProfileScreen.id: (context) => ProfileScreen(),
           //DashboardScreen.id: (context) => DashboardScreen(),
           AdminScreen.id: (context) => AdminScreen(),
+          AnswerCorrectnessScreen.id: (context) =>
+              const AnswerCorrectnessScreen(),
         },
         title: kAppName,
         navigatorKey: navigatorKey,

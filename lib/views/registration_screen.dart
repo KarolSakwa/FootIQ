@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:footix/views/profile_screen.dart';
+import 'package:footix/views/dashboard/profile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:footix/models/database.dart';
 import 'package:country_picker/country_picker.dart';
@@ -240,7 +240,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           'email': email,
                           'name': username,
                           'exp': competitions,
-                          'answeredQuestions': {}
+                          'answeredQuestions': {},
+                          'ID': _auth.currentUser!.uid
                         },
                         id: _auth.currentUser!.uid);
                     Navigator.pushNamed(context, ProfileScreen.id);

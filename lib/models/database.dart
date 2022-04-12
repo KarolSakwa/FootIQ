@@ -20,16 +20,47 @@ class DB {
   }
 
   Future<dynamic> getCollectionDataField(
-      String collection, String field, String fieldValue) async {
+      String collection, String field, String fieldValue,
+      [bool allResults = false]) async {
     var collectionDataField;
     await firestoreInstance
         .collection(collection)
         .where(field, isEqualTo: fieldValue)
         .get()
         .then((value) {
-      collectionDataField = value.docs[0].data();
+      if (value.docs.length > 1 && allResults) {
+        collectionDataField = [];
+        for (var i = 0; i < value.docs.length; i++) {
+          collectionDataField.add(value.docs[i].data());
+        }
+      } else {
+        collectionDataField = value.docs[0].data();
+      }
     });
     return collectionDataField;
+  }
+
+  Future<dynamic> getCollectionDataFieldWithID(
+      String collection, String field, String fieldValue,
+      [bool allResults = false]) async {
+    var finalMap;
+    await firestoreInstance
+        .collection(collection)
+        .where(field, isEqualTo: fieldValue)
+        .get()
+        .then((value) {
+      if (value.docs.length > 1 && allResults) {
+        finalMap = [];
+        for (var i = 0; i < value.docs.length; i++) {
+          finalMap = value.docs[i].data();
+          finalMap['docID'] = value.docs[i].id;
+        }
+      } else {
+        finalMap = value.docs[0].data();
+        finalMap['docID'] = value.docs[0].id;
+      }
+    });
+    print(finalMap);
   }
 
   Future<dynamic> getFieldData(
@@ -46,7 +77,7 @@ class DB {
   }
 
 // creates new field and assigning value to it
-  void addData(String collection, Map<String, dynamic> data, {String? id}) {
+  String addData(String collection, Map<String, dynamic> data, {String? id}) {
     if (id == null) {
       var uuid = Uuid();
       id = uuid.v4();
@@ -58,6 +89,7 @@ class DB {
       dataMap[key] = value;
     }
     firestoreInstance.collection(collection).doc(id).set(dataMap);
+    return id;
   }
 
   void addMapData(String collection, String document, String mapName,
@@ -153,4 +185,46 @@ class DB {
   //     print(compExp);
   //   }
   // }
+
+  getAnswerCorrectnessMap(String? userID) async {
+    var answerCorrectnessRaw =
+        await getFieldData('users', userID, 'answeredQuestions');
+    List keys = answerCorrectnessRaw.keys.toList();
+    Map<String, double> answerCorrectness = {
+      'askedTimesTotal': 0,
+      'answeredCorrectlyTotal': 0
+    };
+    for (var i = 0; i < answerCorrectnessRaw.length; i++) {
+      double askedTimes =
+          answerCorrectnessRaw[keys[i]]['askedTimes'].toDouble();
+      double answeredCorrectly =
+          answerCorrectnessRaw[keys[i]]['answeredCorrectly'].toDouble();
+      answerCorrectness['askedTimesTotal'] =
+          (answerCorrectness['askedTimesTotal']! + askedTimes);
+      answerCorrectness['answeredCorrectlyTotal'] =
+          (answerCorrectness['answeredCorrectlyTotal']! + answeredCorrectly);
+    }
+    return answerCorrectness;
+  }
+
+  getDocumentIDWhereFieldEquals(
+      String collection, String field, String fieldValue,
+      [bool allResults = false]) async {
+    var collectionDataField;
+    await firestoreInstance
+        .collection(collection)
+        .where(field, isEqualTo: fieldValue)
+        .get()
+        .then((value) {
+      if (value.docs.length > 1 && allResults) {
+        collectionDataField = [];
+        for (var i = 0; i < value.docs.length; i++) {
+          collectionDataField.add(value.docs[i].id);
+        }
+      } else {
+        collectionDataField = value.docs[0].id;
+      }
+    });
+    return collectionDataField;
+  }
 }

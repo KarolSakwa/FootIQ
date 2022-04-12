@@ -30,11 +30,12 @@ class _UserSkillsRadarState extends State<UserSkillsRadar> {
           db.getCollectionDataField('users', 'email', userEmail!)
         ]),
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return Container(
                 width: widget.width,
                 height: widget.height,
-                child: Text("Error Occurred"));
+                child: const Text("Error Occurred"));
+          }
           switch (snapshot.connectionState) {
             case ConnectionState.waiting:
               return Container(

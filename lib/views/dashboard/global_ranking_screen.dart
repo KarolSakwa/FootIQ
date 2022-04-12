@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
-import 'package:footix/views/dashboard/components/global_rank.dart';
+import 'package:footix/views/dashboard/components/global_ranking.dart';
 
-class GlobalRankScreen extends StatefulWidget {
-  const GlobalRankScreen({Key? key}) : super(key: key);
+class GlobalRankingScreen extends StatefulWidget {
+  const GlobalRankingScreen({Key? key}) : super(key: key);
 
   @override
-  _GlobalRankScreenState createState() => _GlobalRankScreenState();
+  _GlobalRankingScreenState createState() => _GlobalRankingScreenState();
 }
 
-class _GlobalRankScreenState extends State<GlobalRankScreen> {
+class _GlobalRankingScreenState extends State<GlobalRankingScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -22,14 +22,14 @@ class _GlobalRankScreenState extends State<GlobalRankScreen> {
             Padding(
               padding: const EdgeInsets.all(kMainDefaultPadding),
               child: Text(
-                'Global rank'.toUpperCase(),
+                'Global ranking'.toUpperCase(),
                 style: kWelcomeScreenTitleTextStyle.copyWith(fontSize: 25),
               ),
             ),
             Flexible(
               child: Container(
                 height: 1000,
-                child: GlobalRank(
+                child: GlobalRanking(
                   adjacentElemNum: -1,
                 ),
               ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:footix/views/welcome_screen.dart';
-import 'profile_screen.dart';
+import 'dashboard/profile_screen.dart';
 
 class MainScreen extends StatelessWidget {
   static const String id = 'main_screen';
