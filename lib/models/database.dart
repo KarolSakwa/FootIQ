@@ -9,11 +9,16 @@ class DB {
   final firestoreInstance = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
-  Future<dynamic> getCollectionData(String collection) async {
-    List<Map> fieldList = [];
+  Future<dynamic> getCollectionData(String collection,
+      [var specificField]) async {
+    var fieldList = [];
     await firestoreInstance.collection(collection).get().then((querySnapshot) {
       for (var result in querySnapshot.docs) {
-        fieldList.add(result.data());
+        if (specificField != null) {
+          fieldList.add(result.data()[specificField]);
+        } else {
+          fieldList.add(result.data());
+        }
       }
     });
     return fieldList;
@@ -60,7 +65,6 @@ class DB {
         finalMap['docID'] = value.docs[0].id;
       }
     });
-    print(finalMap);
   }
 
   Future<dynamic> getFieldData(
@@ -116,10 +120,7 @@ class DB {
 
     Map<String, Map> finalMap = {field: dataMap};
     firestoreInstance.collection(collection).doc(document).update(finalMap);
-    //
   }
-
-  void addAnsweredQuestion(Question question) {}
 
   void incrementUserCompExp(String userID, String compName, double value) {
     firestoreInstance
@@ -142,11 +143,20 @@ class DB {
     }
   }
 
+  void appendMapValue(String collection, String document, String map,
+      String mapField, var value,
+      [String? nestedMapField]) {
+    firestoreInstance
+        .collection(collection)
+        .doc(document)
+        .update({'$map.$mapField': value});
+  }
+
   Future<double> getTotalCompetitionExp(
       {required String competitionCode}) async {
     double result = 0;
     await firestoreInstance
-        .collection('new_final_questions')
+        .collection(kQuestionDBTable)
         .where(
           'docCode',
           isGreaterThanOrEqualTo: competitionCode,
@@ -176,34 +186,26 @@ class DB {
     return finalMap;
   }
 
-  // Future<dynamic> getLoggedInUserExpMap() async {
-  //   var allComp = await getCollectionData('competition');
-  //   var expMap = {};
-  //   for (var i = 0; i < allComp.length; i++) {
-  //     var compExp = await getCollectionDataField(
-  //         'users', 'email', _auth.currentUser?.email ?? '');
-  //     print(compExp);
-  //   }
-  // }
-
   getAnswerCorrectnessMap(String? userID) async {
-    var answerCorrectnessRaw =
-        await getFieldData('users', userID, 'answeredQuestions');
-    List keys = answerCorrectnessRaw.keys.toList();
+    var allUserChallenges = await getCollectionDataField(
+        'challenges', 'user', _auth.currentUser!.uid, true);
     Map<String, double> answerCorrectness = {
       'askedTimesTotal': 0,
       'answeredCorrectlyTotal': 0
     };
-    for (var i = 0; i < answerCorrectnessRaw.length; i++) {
-      double askedTimes =
-          answerCorrectnessRaw[keys[i]]['askedTimes'].toDouble();
-      double answeredCorrectly =
-          answerCorrectnessRaw[keys[i]]['answeredCorrectly'].toDouble();
-      answerCorrectness['askedTimesTotal'] =
-          (answerCorrectness['askedTimesTotal']! + askedTimes);
-      answerCorrectness['answeredCorrectlyTotal'] =
-          (answerCorrectness['answeredCorrectlyTotal']! + answeredCorrectly);
+    for (var i = 0; i < allUserChallenges.length; i++) {
+      for (var j = 0; j < allUserChallenges[i]['questions'].length; j++) {
+        answerCorrectness['askedTimesTotal'] =
+            (answerCorrectness['askedTimesTotal']! + 1);
+        var current = allUserChallenges[i]['questions']
+            [allUserChallenges[i]['questions'].keys.toList()[j]];
+        if (current == true) {
+          answerCorrectness['answeredCorrectlyTotal'] =
+              (answerCorrectness['answeredCorrectlyTotal']! + 1);
+        }
+      }
     }
+
     return answerCorrectness;
   }
 
@@ -226,5 +228,42 @@ class DB {
       }
     });
     return collectionDataField;
+  }
+
+  getUserAnsweredQuestions() async {
+    var allUserAnsweredChallenges = await getDocumentIDWhereFieldEquals(
+        'challenges', 'user', _auth.currentUser!.uid, true);
+    var allUserAnsweredQuestions = [];
+    for (var i = 0; i < allUserAnsweredChallenges.length; i++) {
+      var currentQuestions = await getFieldData(
+          'challenges', allUserAnsweredChallenges[i], 'questions');
+      allUserAnsweredQuestions.add(currentQuestions);
+    }
+    Map finalMap = {};
+    for (var i = 0; i < allUserAnsweredQuestions.length; i++) {
+      finalMap.addAll(allUserAnsweredQuestions[i]);
+    }
+    return finalMap;
+  }
+
+  getUserAnsweredQuestionsByComp() async {
+    // retrieving all user's questions
+    var allUserAnsweredQuestions = await getUserAnsweredQuestions();
+    var finalMap = {};
+    for (var i = 0; i < allUserAnsweredQuestions.keys.toList().length; i++) {
+      var currentQuestionCode = await getFieldData(kQuestionDBTable,
+          allUserAnsweredQuestions.keys.toList()[i], 'docCode');
+      String currentQuestionCodeSanitized =
+          currentQuestionCode.substring(0, currentQuestionCode.indexOf('_'));
+      if (finalMap[currentQuestionCodeSanitized] == null) {
+        finalMap[currentQuestionCodeSanitized] = [];
+      }
+
+      finalMap[currentQuestionCodeSanitized].add({
+        allUserAnsweredQuestions.keys.toList()[i]:
+            allUserAnsweredQuestions[allUserAnsweredQuestions.keys.toList()[i]]
+      });
+    }
+    return finalMap;
   }
 }

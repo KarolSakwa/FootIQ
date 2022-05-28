@@ -7,6 +7,7 @@ import 'package:footix/models/admin.dart';
 
 class AdminScreen extends StatefulWidget {
   static const String id = 'admin_screen';
+  Admin admin = Admin();
 
   AdminScreen({Key? key}) : super(key: key);
   @override
@@ -14,17 +15,6 @@ class AdminScreen extends StatefulWidget {
 }
 
 class _AdminScreenState extends State<AdminScreen> {
-  void initState() {
-    Admin admin = Admin();
-    admin.IQTDBscorersByCompetitionSeason();
-
-    // Future competitions = admin.getCollectionData('competition');
-    // competitions.then((val) {
-    //   print(val);
-    // });
-  }
-
-  final _auth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,9 +24,13 @@ class _AdminScreenState extends State<AdminScreen> {
         backgroundColor: Color(0xFF0B1724FF),
       ),
       body: Padding(
-          //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
           padding: EdgeInsets.symmetric(horizontal: 15),
-          child: Text('')),
+          child: TextButton(
+            onPressed: () {
+              widget.admin.QuestionsScorersByCompetitionSeason();
+            },
+            child: Text('Insert questions'),
+          )),
     );
   }
 }

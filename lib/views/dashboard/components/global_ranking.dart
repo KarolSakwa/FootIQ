@@ -19,8 +19,8 @@ class GlobalRanking extends StatefulWidget {
 class _GlobalRankingState extends State<GlobalRanking> {
   @override
   Widget build(BuildContext context) {
-    Future<List<Map>> getGlobalRanking() async {
-      List<Map> allUsersSorted = await widget.db.getCollectionData("users");
+    dynamic getGlobalRanking() async {
+      var allUsersSorted = await widget.db.getCollectionData("users");
       allUsersSorted.sort((m1, m2) {
         double totalM1 = 0;
         for (var i = 0; i < m1['exp'].keys.toList().length; i++) {
@@ -31,14 +31,15 @@ class _GlobalRankingState extends State<GlobalRanking> {
           totalM2 += m2['exp'].values.toList()[i];
         }
         var r = totalM2.compareTo(totalM1);
-        if (r != 0) return r;
+        if (r != 0) {
+          return r;
+        }
         return totalM1.compareTo(totalM2);
       });
-      //print(allUsersSorted);
       return allUsersSorted;
     }
 
-    Future<List<Map>> getShortRank(String email) async {
+    dynamic getShortRank(String email) async {
       var fullRank = await getGlobalRanking();
       int userRank = getUserRank(fullRank, email);
       widget.adjacentElemNum = widget.adjacentElemNum! < fullRank.length / 2
@@ -102,30 +103,34 @@ class _GlobalRankingState extends State<GlobalRanking> {
                       child: FutureBuilder(
                         future: widget.db.getAnswerCorrectnessMap(item['ID']),
                         builder: (context, userAnswerCorrectnessData) {
-                          Map userAnswerCorrectnessMap =
-                              userAnswerCorrectnessData.data as Map;
-                          int userAnswerCorrectness =
-                              ((userAnswerCorrectnessMap[
-                                              'answeredCorrectlyTotal'] /
-                                          userAnswerCorrectnessMap[
-                                              'askedTimesTotal']) *
-                                      100)
-                                  .round();
-                          return Card(
-                            child: ListTile(
-                              tileColor: position == highlightIndex
-                                  ? kMainMediumColor
-                                  : kMainGreyColor,
-                              title: Text(
-                                '${getUserRank(fullRank, item['email']) + 1}. ${item['name'].toUpperCase()} | ${getMapSum(item['exp']).toInt()} EXP | Correctness: $userAnswerCorrectness%',
-                                style: TextStyle(
-                                    color: kMainLightColor,
-                                    fontWeight: position == highlightIndex
-                                        ? FontWeight.bold
-                                        : FontWeight.normal),
+                          if (userAnswerCorrectnessData.hasData) {
+                            Map userAnswerCorrectnessMap =
+                                userAnswerCorrectnessData.data as Map;
+                            int userAnswerCorrectness =
+                                ((userAnswerCorrectnessMap[
+                                                'answeredCorrectlyTotal'] /
+                                            userAnswerCorrectnessMap[
+                                                'askedTimesTotal']) *
+                                        100)
+                                    .round();
+                            return Card(
+                              child: ListTile(
+                                tileColor: position == highlightIndex
+                                    ? kMainMediumColor
+                                    : kMainGreyColor,
+                                title: Text(
+                                  '${getUserRank(fullRank, item['email']) + 1}. ${item['name'].toUpperCase()} | ${getMapSum(item['exp']).toInt()} EXP | Correctness: $userAnswerCorrectness%',
+                                  style: TextStyle(
+                                      color: kMainLightColor,
+                                      fontWeight: position == highlightIndex
+                                          ? FontWeight.bold
+                                          : FontWeight.normal),
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          } else {
+                            return CircularProgressIndicator();
+                          }
                         },
                       ));
                 },

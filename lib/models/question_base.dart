@@ -1,9 +1,10 @@
 // this file is here to retrieve data from db
+import '../contants.dart';
 import 'question.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class QuestionBase {
-  final String _questionDBCollection = 'new_final_questions';
+  final String _questionDBCollection = kQuestionDBTable;
 
   final firestoreInstance = FirebaseFirestore.instance;
 
@@ -26,7 +27,6 @@ class QuestionBase {
           'questionCode': result.data()['docCode'],
           'questionCategory': '', //result.data()['question_category']
         });
-        //collectionMap[result.data()['tm_code']] = result.data()['name'];
       }
       return questionList;
     });

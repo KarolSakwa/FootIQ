@@ -16,7 +16,7 @@ class WelcomeScreen extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 100.0),
           child: Column(
             children: [
-              Center(
+              const Center(
                 child: kWelcomeScreenTitleText,
               ),
               Center(
@@ -33,7 +33,7 @@ class WelcomeScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
-                        children: [
+                        children: const [
                           Icon(
                             Icons.local_fire_department,
                             color: kMainLightColor,
@@ -69,7 +69,7 @@ class WelcomeScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
-                        children: [
+                        children: const [
                           Icon(
                             Icons.person,
                             color: kMainLightColor,
@@ -91,53 +91,53 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
               InkWell(
                 onTap: () =>
                     Navigator.pushNamed(context, RegistrationScreen.id),
-                child: Text(
+                child: const Text(
                   "Don't have an account? Register here!",
                   style: TextStyle(color: Colors.white),
                 ),
               ),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: TextButton(
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(kMainGreyColor),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 18.0, horizontal: 105.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.person,
-                            color: kMainLightColor,
-                          ),
-                          SizedBox(
-                            width: 10.0,
-                          ),
-                          Text(
-                            'SAP',
-                            style: TextStyle(
-                                fontSize: 20.0, color: kMainLightColor),
-                          ),
-                        ],
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, AdminScreen.id);
-                    },
-                  ),
-                ),
-              ),
+              // Center(
+              //   child: Padding(
+              //     padding: const EdgeInsets.only(top: 20.0),
+              //     child: TextButton(
+              //       style: ButtonStyle(
+              //         backgroundColor:
+              //             MaterialStateProperty.all<Color>(kMainGreyColor),
+              //       ),
+              //       child: Padding(
+              //         padding: const EdgeInsets.symmetric(
+              //             vertical: 18.0, horizontal: 105.0),
+              //         child: Row(
+              //           mainAxisAlignment: MainAxisAlignment.center,
+              //           mainAxisSize: MainAxisSize.min,
+              //           children: [
+              //             Icon(
+              //               Icons.person,
+              //               color: kMainLightColor,
+              //             ),
+              //             SizedBox(
+              //               width: 10.0,
+              //             ),
+              //             Text(
+              //               'SAP',
+              //               style: TextStyle(
+              //                   fontSize: 20.0, color: kMainLightColor),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //       onPressed: () {
+              //         Navigator.pushNamed(context, AdminScreen.id);
+              //       },
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),

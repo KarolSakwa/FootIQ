@@ -112,7 +112,6 @@ class _UserSkillsRadarState extends State<UserSkillsRadar> {
     List<double> competitionsMaxExp = [];
     for (var i = 0; i < competitionMap.length; i++) {
       competitionsNames.add(competitionMap[competitions[i]['tm_code']]['name']);
-      print(competitionMap[competitions[i]['tm_code']]['userExp']);
       competitionsUserExp.add(
           competitionMap[competitions[i]['tm_code']]['userExp'].toDouble());
       competitionsMaxExp

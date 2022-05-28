@@ -11,6 +11,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  @override
   void initState() {
     super.initState();
     Firebase.initializeApp();
@@ -25,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: kMainDarkColor,
       appBar: AppBar(
-        title: Text("Login"),
+        title: const Text("Login"),
         backgroundColor: Color(0xFF0B1724FF),
       ),
       body: SingleChildScrollView(
@@ -41,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: kWelcomeScreenTitleText),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 50,
             ),
             Padding(
@@ -50,11 +51,10 @@ class _LoginScreenState extends State<LoginScreen> {
               child: TextField(
                 style: TextStyle(color: kMainLightColor),
                 cursorColor: kMainLightColor,
-                decoration: InputDecoration(
-                    enabledBorder: const OutlineInputBorder(
+                decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
                       // width: 0.0 produces a thin "hairline" border
-                      borderSide:
-                          const BorderSide(color: kMainLightColor, width: 1),
+                      borderSide: BorderSide(color: kMainLightColor, width: 1),
                     ),
                     hintStyle: TextStyle(color: kMainLightColor),
                     border: OutlineInputBorder(),
@@ -73,11 +73,10 @@ class _LoginScreenState extends State<LoginScreen> {
               child: TextFormField(
                 obscureText: true,
                 style: TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                    enabledBorder: const OutlineInputBorder(
+                decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
                       // width: 0.0 produces a thin "hairline" border
-                      borderSide:
-                          const BorderSide(color: kMainLightColor, width: 1),
+                      borderSide: BorderSide(color: kMainLightColor, width: 1),
                     ),
                     hintStyle: TextStyle(color: kMainLightColor),
                     border: OutlineInputBorder(),
@@ -93,49 +92,46 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: () {
                 //TODO FORGOT PASSWORD SCREEN GOES HERE
               },
-              child: Text(
+              child: const Text(
                 'Forgot Password',
                 style: TextStyle(color: Colors.blue, fontSize: 15),
               ),
             ),
-            Container(
-              child: TextButton(
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(kMainMediumColor),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 18.0, horizontal: 105.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Log In',
-                        style:
-                            TextStyle(fontSize: 20.0, color: kMainLightColor),
-                      ),
-                    ],
-                  ),
-                ),
-                onPressed: () async {
-                  try {
-                    final user = await _auth.signInWithEmailAndPassword(
-                        email: email, password: password);
-                    if (user != null) {
-                      Navigator.pushNamed(context, ProfileScreen.id);
-                    }
-                  } catch (e) {
-                    print(e);
-                  }
-                },
+            TextButton(
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(kMainMediumColor),
               ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    vertical: 18.0, horizontal: 105.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Text(
+                      'Log In',
+                      style: TextStyle(fontSize: 20.0, color: kMainLightColor),
+                    ),
+                  ],
+                ),
+              ),
+              onPressed: () async {
+                try {
+                  final user = await _auth.signInWithEmailAndPassword(
+                      email: email, password: password);
+                  if (user != null) {
+                    Navigator.pushNamed(context, ProfileScreen.id);
+                  }
+                } catch (e) {
+                  print(e);
+                }
+              },
             ),
-            SizedBox(
+            const SizedBox(
               height: 130,
             ),
-            Text('New User? Create Account')
+            const Text('New User? Create Account')
           ],
         ),
       ),

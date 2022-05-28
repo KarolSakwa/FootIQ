@@ -23,8 +23,9 @@ final db = DB();
 List<Icon> scoreKeeper = [];
 
 class QuestionCard extends StatefulWidget {
-  const QuestionCard({Key? key}) : super(key: key);
-
+  String challengeID;
+  Question? currentQuestion;
+  QuestionCard(String this.challengeID, {Key? key}) : super(key: key);
   @override
   State<QuestionCard> createState() => _QuestionCardState();
 }
@@ -60,15 +61,21 @@ class _QuestionCardState extends State<QuestionCard> {
         if (answerText == currentQuestion.getCorrectAnswer()) {
           correctAnswerActions();
           updateAnsweredQuestions(currentQuestion.getID(), true);
+          db.appendMapValue('challenges', widget.challengeID, 'questions',
+              currentQuestion.getID(), true);
         } else {
           inCorrectAnswerActions();
           updateAnsweredQuestions(currentQuestion.getID(), false);
+          db.appendMapValue('challenges', widget.challengeID, 'questions',
+              currentQuestion.getID(), false);
         }
       });
     });
   }
 
   void timesUpActions() {
+    db.appendMapValue('challenges', widget.challengeID, 'questions',
+        widget.currentQuestion!.getID(), false);
     scoreKeeper.add(Icon(
       Icons.close,
       color: Colors.red,
@@ -97,8 +104,8 @@ class _QuestionCardState extends State<QuestionCard> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ScoreScreen(
-                                userAnsweredQuestionList: answeredQuestionList),
+                            builder: (context) =>
+                                ScoreScreen(widget.challengeID),
                           ));
                       //Navigator.pushNamed(context, ScoreScreen.id);
                     }
@@ -147,8 +154,8 @@ class _QuestionCardState extends State<QuestionCard> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ScoreScreen(
-                                userAnsweredQuestionList: answeredQuestionList),
+                            builder: (context) =>
+                                ScoreScreen(widget.challengeID),
                           ));
                       //Navigator.pushNamed(context, ScoreScreen.id);
                     }
@@ -196,8 +203,8 @@ class _QuestionCardState extends State<QuestionCard> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ScoreScreen(
-                                userAnsweredQuestionList: answeredQuestionList),
+                            builder: (context) =>
+                                ScoreScreen(widget.challengeID),
                           ));
                     }
                     questionController.questionNumber =
@@ -222,12 +229,13 @@ class _QuestionCardState extends State<QuestionCard> {
     return WillPopScope(
       onWillPop: () async => false,
       child: FutureBuilder<Question>(
-        future: questionController.getNextQuestion2(),
+        future: questionController.getNextQuestion(),
         builder: (BuildContext context, AsyncSnapshot<Question> result) {
           if (result.hasData &&
               questionController.questionNum <= maxQuestionNum) {
             String questionSeason = getQuestionSeason(result.data!);
             String questionCompetition = getQuestionCompetition(result.data!);
+            widget.currentQuestion = result.data!;
             return SizedBox(
               height: MediaQuery.of(context).size.height * 0.7,
               child: Column(
@@ -495,21 +503,21 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   updateAnsweredQuestions(questionID, correctAnswer) async {
-    var answeredQuestions =
-        await db.getFieldData('users', loggedInUser.uid, 'answeredQuestions');
-    int correctAnswers = 0;
-    if (!answeredQuestions.containsKey(questionID)) {
-      correctAnswers = correctAnswer ? 1 : 0;
-      db.addMapData('users', loggedInUser.uid, 'answeredQuestions', {
-        questionID: {'askedTimes': 1, 'answeredCorrectly': correctAnswers}
-      });
-    } else {
-      correctAnswers = correctAnswer ? 1 : 0;
-      db.incrementMapValue('users', loggedInUser.uid, 'answeredQuestions',
-          questionID, 1, 'askedTimes');
-      db.incrementMapValue('users', loggedInUser.uid, 'answeredQuestions',
-          questionID, correctAnswers.toDouble(), 'answeredCorrectly');
-    }
+    // var answeredQuestions =
+    //     await db.getFieldData('users', loggedInUser.uid, 'answeredQuestions');
+    // int correctAnswers = 0;
+    // if (!answeredQuestions.containsKey(questionID)) {
+    //   correctAnswers = correctAnswer ? 1 : 0;
+    //   db.addMapData('users', loggedInUser.uid, 'answeredQuestions', {
+    //     questionID: {'askedTimes': 1, 'answeredCorrectly': correctAnswers}
+    //   });
+    // } else {
+    //   correctAnswers = correctAnswer ? 1 : 0;
+    //   db.incrementMapValue('users', loggedInUser.uid, 'answeredQuestions',
+    //       questionID, 1, 'askedTimes');
+    //   db.incrementMapValue('users', loggedInUser.uid, 'answeredQuestions',
+    //       questionID, correctAnswers.toDouble(), 'answeredCorrectly');
+    // }
   }
 
   void startTimer() {

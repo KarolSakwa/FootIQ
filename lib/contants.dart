@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const kAppName = 'FootiX9';
+const kAppName = 'FootIQ';
 
 // color palette
 const kMainDarkColor = Color(0xff0b1724);
@@ -31,3 +31,4 @@ var kAnswerButtonStyle = ButtonStyle(
 );
 double difficultyExpMultiplier = 2;
 String kNoAnsweredQuestions = 'You haven\'t answered any questions yet!';
+String kQuestionDBTable = 'new_final_questions';

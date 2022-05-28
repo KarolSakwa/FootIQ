@@ -16,14 +16,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   Provider.debugCheckInvalidValueType =
-      null; // żeby nie pojawiał się błąd  Tried to use Provider with a subtype of Listenable/Stream (AnswerSelectedNotifier).
+      null; // to avoid error: Tried to use Provider with a subtype of Listenable/Stream (AnswerSelectedNotifier).
 
-  runApp(FootiX9());
+  runApp(FootiIQ());
 }
 
-class FootiX9 extends StatelessWidget {
-  final GlobalKey<NavigatorState> navigatorKey =
-      new GlobalKey<NavigatorState>();
+class FootiIQ extends StatelessWidget {
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  const FootiIQ({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -44,14 +45,13 @@ class FootiX9 extends StatelessWidget {
           MainScreen.id: (context) => MainScreen(),
           WelcomeScreen.id: (context) => WelcomeScreen(),
           QuickChallengeScreen.id: (context) => QuickChallengeScreen(),
-          ScoreScreen.id: (context) => ScoreScreen(),
+          ScoreScreen.id: (context) => ScoreScreen(''),
           LoginScreen.id: (context) => LoginScreen(),
           RegistrationScreen.id: (context) => RegistrationScreen(),
           ProfileScreen.id: (context) => ProfileScreen(),
           //DashboardScreen.id: (context) => DashboardScreen(),
           AdminScreen.id: (context) => AdminScreen(),
-          AnswerCorrectnessScreen.id: (context) =>
-              const AnswerCorrectnessScreen(),
+          AnswerCorrectnessScreen.id: (context) => AnswerCorrectnessScreen(),
         },
         title: kAppName,
         navigatorKey: navigatorKey,
@@ -59,17 +59,3 @@ class FootiX9 extends StatelessWidget {
     );
   }
 }
-/*
-return FutureBuilder<FirebaseUser>(
-            future: FirebaseAuth.instance.currentUser(),
-            builder: (BuildContext context, AsyncSnapshot<FirebaseUser> snapshot){
-                       if (snapshot.hasData){
-                           FirebaseUser user = snapshot.data; // this is your user instance
-                           /// is because there is user already logged
-                           return MainScreen();
-                        }
-                         /// other way there is no user logged.
-                         return LoginScreen();
-             }
-          );
- */

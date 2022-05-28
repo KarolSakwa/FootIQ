@@ -15,6 +15,8 @@ class RegistrationScreen extends StatefulWidget {
   static const String id = 'registration_screen';
   String nationality = 'Nationality';
   final firestoreInstance = FirebaseFirestore.instance;
+
+  RegistrationScreen({Key? key}) : super(key: key);
   @override
   _RegistrationScreenState createState() => _RegistrationScreenState();
 }
@@ -26,9 +28,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final firestoreInstance = FirebaseFirestore.instance;
 
     firestoreInstance.collection("country").get().then((querySnapshot) {
-      querySnapshot.docs.forEach((result) {
-        print(result.data()['code']);
-      });
+      querySnapshot.docs.forEach((result) {});
     });
   }
 
@@ -41,8 +41,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     return Scaffold(
       backgroundColor: kMainDarkColor,
       appBar: AppBar(
-        title: Text("Register"),
-        backgroundColor: Color(0xFF0B1724FF),
+        title: const Text("Register"),
+        backgroundColor: const Color(0xFF0B1724FF),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -57,7 +57,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     child: kWelcomeScreenTitleText),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             Padding(
@@ -66,11 +66,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               child: TextField(
                 style: TextStyle(color: kMainLightColor),
                 cursorColor: kMainLightColor,
-                decoration: InputDecoration(
-                    enabledBorder: const OutlineInputBorder(
+                decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
                       // width: 0.0 produces a thin "hairline" border
-                      borderSide:
-                          const BorderSide(color: kMainLightColor, width: 1),
+                      borderSide: BorderSide(color: kMainLightColor, width: 1),
                     ),
                     hintStyle: TextStyle(color: kMainLightColor),
                     border: OutlineInputBorder(),
@@ -84,9 +83,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
             Padding(
               //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-              padding: EdgeInsets.only(bottom: 15, left: 15, right: 15),
+              padding: const EdgeInsets.only(bottom: 15, left: 15, right: 15),
               child: TextField(
-                style: TextStyle(color: kMainLightColor),
+                style: const TextStyle(color: kMainLightColor),
                 cursorColor: kMainLightColor,
                 decoration: const InputDecoration(
                     enabledBorder: OutlineInputBorder(
@@ -105,10 +104,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
             Padding(
               //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-              padding: EdgeInsets.symmetric(horizontal: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: BoxConstraints.tightFor(height: 60),
+                  constraints: const BoxConstraints.tightFor(height: 60),
                   child: ElevatedButton(
                     onPressed: () {
                       showCountryPicker(
@@ -122,7 +121,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         // Optional. Sets the theme for the country list picker.
                         countryListTheme: CountryListThemeData(
                           // Optional. Sets the border radius for the bottomsheet.
-                          borderRadius: BorderRadius.only(
+                          borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(40.0),
                             topRight: Radius.circular(40.0),
                           ),
@@ -145,16 +144,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       children: [
                         Text(
                           widget.nationality,
-                          style:
-                              TextStyle(color: kMainLightColor, fontSize: 14),
+                          style: const TextStyle(
+                              color: kMainLightColor, fontSize: 14),
                         ),
-                        Icon(
+                        const Icon(
                           Icons.arrow_drop_down_circle_outlined,
                         ),
                       ],
                     ),
                     style: ButtonStyle(
-                        side: MaterialStateProperty.all<BorderSide>(BorderSide(
+                        side: MaterialStateProperty.all<BorderSide>(
+                            const BorderSide(
                           width: 1.0,
                           color: kMainLightColor,
                         )),
@@ -170,12 +170,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               //padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextFormField(
                 obscureText: true,
-                style: TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                    enabledBorder: const OutlineInputBorder(
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
                       // width: 0.0 produces a thin "hairline" border
-                      borderSide:
-                          const BorderSide(color: kMainLightColor, width: 1),
+                      borderSide: BorderSide(color: kMainLightColor, width: 1),
                     ),
                     hintStyle: TextStyle(color: kMainLightColor),
                     border: OutlineInputBorder(),
@@ -193,63 +192,58 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               },
               child: InkWell(
                 onTap: () => Navigator.pushNamed(context, LoginScreen.id),
-                child: Text(
+                child: const Text(
                   'Already have an account? Log in here!',
                   style: TextStyle(color: Colors.blue, fontSize: 15),
                 ),
               ),
             ),
-            Container(
-              child: TextButton(
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(kMainMediumColor),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 18.0, horizontal: 105.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Register',
-                        style:
-                            TextStyle(fontSize: 20.0, color: kMainLightColor),
-                      ),
-                    ],
-                  ),
-                ),
-                onPressed: () async {
-                  List<Map> competitionsMaps =
-                      await widget.db.getCollectionData('competition');
-                  print(competitionsMaps);
-                  Map<String, double> competitions = {};
-                  for (var i = 0; i < competitionsMaps.length; i++) {
-                    competitions[competitionsMaps[i]['tm_code']] = 0;
-                  }
-                  try {
-                    final newUser = await _auth
-                        .createUserWithEmailAndPassword(
-                            email: email, password: password)
-                        .then(
-                            (value) => value.user!.updateDisplayName(username));
-                    widget.db.addData(
-                        'users',
-                        {
-                          'email': email,
-                          'name': username,
-                          'exp': competitions,
-                          'answeredQuestions': {},
-                          'ID': _auth.currentUser!.uid
-                        },
-                        id: _auth.currentUser!.uid);
-                    Navigator.pushNamed(context, ProfileScreen.id);
-                  } catch (e) {
-                    print(e);
-                  }
-                },
+            TextButton(
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(kMainMediumColor),
               ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    vertical: 18.0, horizontal: 105.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Text(
+                      'Register',
+                      style: TextStyle(fontSize: 20.0, color: kMainLightColor),
+                    ),
+                  ],
+                ),
+              ),
+              onPressed: () async {
+                List<Map> competitionsMaps =
+                    await widget.db.getCollectionData('competition');
+                Map<String, double> competitions = {};
+                for (var i = 0; i < competitionsMaps.length; i++) {
+                  competitions[competitionsMaps[i]['tm_code']] = 0;
+                }
+                try {
+                  final newUser = await _auth
+                      .createUserWithEmailAndPassword(
+                          email: email, password: password)
+                      .then((value) => value.user!.updateDisplayName(username));
+                  widget.db.addData(
+                      'users',
+                      {
+                        'email': email,
+                        'name': username,
+                        'exp': competitions,
+                        'answeredQuestions': {},
+                        'ID': _auth.currentUser!.uid
+                      },
+                      id: _auth.currentUser!.uid);
+                  Navigator.pushNamed(context, ProfileScreen.id);
+                } catch (e) {
+                  print(e);
+                }
+              },
             ),
           ],
         ),

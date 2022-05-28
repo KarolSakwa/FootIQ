@@ -40,7 +40,6 @@ flutter:
 
 
   assets:
-  - assets/question_images/
   - assets/competition_images/
   - assets/img/
 

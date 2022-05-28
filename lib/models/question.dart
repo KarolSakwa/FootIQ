@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-
 class Question {
   String _imgSrc = '',
       _ID = '',
@@ -27,18 +25,18 @@ class Question {
       required String questionCode,
       String userAnswer = '',
       required double difficulty}) {
-    this._imgSrc = imgSrc;
-    this._ID = ID;
-    this._questionText = questionText;
-    this._answerA = answerA;
-    this._answerB = answerB;
-    this._answerC = answerC;
-    this._answerD = answerD;
-    this._correctAnswer = correctAnswer;
-    this._userAnswer = userAnswer;
-    this._questionCode = questionCode;
-    this._questionCategory = questionCategory;
-    this._difficulty = difficulty;
+    _imgSrc = imgSrc;
+    _ID = ID;
+    _questionText = questionText;
+    _answerA = answerA;
+    _answerB = answerB;
+    _answerC = answerC;
+    _answerD = answerD;
+    _correctAnswer = correctAnswer;
+    _userAnswer = userAnswer;
+    _questionCode = questionCode;
+    _questionCategory = questionCategory;
+    _difficulty = difficulty;
   }
 
   String getImgSrc() {
@@ -90,6 +88,6 @@ class Question {
   }
 
   setUserAnswer(userAnswer) {
-    this._userAnswer = userAnswer;
+    _userAnswer = userAnswer;
   }
 }

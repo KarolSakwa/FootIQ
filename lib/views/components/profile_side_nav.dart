@@ -6,6 +6,8 @@ import 'package:footix/views/welcome_screen.dart';
 class ProfileSideNav extends StatelessWidget {
   final _auth = FirebaseAuth.instance;
 
+  ProfileSideNav({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Drawer(

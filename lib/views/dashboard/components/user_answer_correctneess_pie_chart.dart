@@ -23,7 +23,6 @@ class UserAnswerCorrectnessPieChart extends StatelessWidget {
             ? ((correctAnswers! / (correctAnswers! + incorrectAnswers!)) * 100)
                 .round()
             : null;
-    print(correctAnswers);
     chartRadius ??= MediaQuery.of(context).size.width / 3.2;
     return Center(
         child: Padding(
