@@ -1,26 +1,28 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:footix/models/question.dart';
 import 'package:footix/controllers/question_controller.dart';
+import 'package:footix/views/components/question_card/question_card_image.dart';
+import 'package:footix/views/components/question_card/question_card_text.dart';
 import 'package:footix/views/score_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:footix/models/database.dart';
+import 'package:circular_countdown_timer/circular_countdown_timer.dart';
+import 'package:material_dialogs/material_dialogs.dart';
+import 'package:material_dialogs/widgets/buttons/icon_button.dart';
 
 QuestionController questionController = QuestionController();
 
-int maxQuestionNum = 3;
+int maxQuestionNum = 5;
 List<Question> answeredQuestionList = [];
-final _random = Random();
-const maxSeconds = 15;
-int seconds = maxSeconds;
-Timer? timer;
-final _auth = FirebaseAuth.instance;
+const maxSeconds = 3;
 late User loggedInUser;
 final db = DB();
 List<Icon> scoreKeeper = [];
+CountDownController countDownController = CountDownController();
+bool isOnCompleteCounterInvoked = false;
 
 class QuestionCard extends StatefulWidget {
   String challengeID;
@@ -43,37 +45,31 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   void initState() {
-    loggedInUser = _auth.currentUser!;
-    questionController.questionNumber =
-        _random.nextInt(questionController.questionListLength);
-    startTimer();
+    questionController.questionNum = 0;
+    scoreKeeper = [];
     super.initState();
   }
 
   void updateState(answerText, currentQuestion) {
-    questionController.questionNum++;
-    setState(() {
-      Question question = currentQuestion;
-      answeredQuestionList.add(currentQuestion);
-      currentQuestion.setUserAnswer(answerText);
-      Future.delayed(Duration(milliseconds: 0), () {
-        // 3000?
-        if (answerText == currentQuestion.getCorrectAnswer()) {
-          correctAnswerActions();
-          updateAnsweredQuestions(currentQuestion.getID(), true);
-          db.appendMapValue('challenges', widget.challengeID, 'questions',
-              currentQuestion.getID(), true);
-        } else {
-          inCorrectAnswerActions();
-          updateAnsweredQuestions(currentQuestion.getID(), false);
-          db.appendMapValue('challenges', widget.challengeID, 'questions',
-              currentQuestion.getID(), false);
-        }
-      });
+    answeredQuestionList.add(currentQuestion);
+    currentQuestion.setUserAnswer(answerText);
+    Future.delayed(const Duration(milliseconds: 0), () {
+      // 3000?
+      if (answerText == currentQuestion.getCorrectAnswer()) {
+        correctAnswerActions();
+        db.appendMapValue('challenges', widget.challengeID, 'questions',
+            currentQuestion.getID(), true);
+      } else {
+        inCorrectAnswerActions();
+        db.appendMapValue('challenges', widget.challengeID, 'questions',
+            currentQuestion.getID(), false);
+      }
     });
+    questionController.questionNum++;
   }
 
   void timesUpActions() {
+    isOnCompleteCounterInvoked = false;
     db.appendMapValue('challenges', widget.challengeID, 'questions',
         widget.currentQuestion!.getID(), false);
     scoreKeeper.add(Icon(
@@ -81,146 +77,95 @@ class _QuestionCardState extends State<QuestionCard> {
       color: Colors.red,
     ));
     questionController.questionNum++;
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) => WillPopScope(
-        onWillPop: () async => false,
-        child: AlertDialog(
-          title: Center(
-            child: const Text(
-              'Time\'s up!',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-          actions: <Widget>[
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  setState(() {
-                    seconds = maxSeconds;
-                    Navigator.pop(context);
-                    if (questionController.questionNum > maxQuestionNum) {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ScoreScreen(widget.challengeID),
-                          ));
-                      //Navigator.pushNamed(context, ScoreScreen.id);
-                    }
-                    questionController.questionNumber =
-                        _random.nextInt(questionController.questionListLength);
-                  });
-                  if (questionController.questionNum > maxQuestionNum)
-                    timer!.cancel();
-                  else
-                    startTimer();
-                },
-                child: const Text('OK'),
-              ),
-            ),
-          ],
-        ),
+    Dialogs.materialDialog(
+      onClose:
+          closeAlert, // for some reason barrierDismissible option not working here, so I have to work it around the other way
+      color: Colors.white,
+      title: 'Time\'s up!',
+      lottieBuilder: Lottie.asset(
+        'assets/lotties/incorrect.json',
+        fit: BoxFit.contain,
       ),
+      dialogWidth: 0.3,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            closeAlert(true);
+          },
+          text: 'Ok',
+          iconData: Icons.done,
+          color: kMainRed,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
     );
   }
 
   void correctAnswerActions() {
+    isOnCompleteCounterInvoked = false;
+    countDownController.pause();
     scoreKeeper.add(Icon(
       Icons.check,
       color: Colors.green,
     ));
-    // znajdujemy zalogowanego użytkownika w bazie, przypisujemy do jego pola exp podpole z nazwą kategorii (rozgrywek), określoną liczbę expa\
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) => WillPopScope(
-        onWillPop: () async => false,
-        child: AlertDialog(
-          title: Center(
-            child: const Text(
-              'Correct!',
-              style: TextStyle(color: Colors.green),
-            ),
-          ),
-          actions: <Widget>[
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  setState(() {
-                    Navigator.pop(context);
-                    if (questionController.questionNum > maxQuestionNum) {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ScoreScreen(widget.challengeID),
-                          ));
-                      //Navigator.pushNamed(context, ScoreScreen.id);
-                    }
-                    questionController.questionNumber =
-                        _random.nextInt(questionController.questionListLength);
-                  });
-                  if (questionController.questionNum > maxQuestionNum)
-                    timer!.cancel();
-                  else
-                    startTimer();
-                },
-                child: const Text('OK'),
-              ),
-            ),
-          ],
-        ),
+    Dialogs.materialDialog(
+      onClose:
+          closeAlert, // for some reason barrierDismissible option not working here, so I have to work it around the other way
+      color: Colors.white,
+      title: 'Correct!',
+      lottieBuilder: Lottie.asset(
+        'assets/lotties/correct.json',
+        fit: BoxFit.contain,
       ),
+      dialogWidth: 0.3,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            closeAlert(true);
+          },
+          text: 'Ok',
+          iconData: Icons.done,
+          color: kMainLightColor,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
     );
   }
 
   void inCorrectAnswerActions() {
+    isOnCompleteCounterInvoked = false;
+    countDownController.pause();
     scoreKeeper.add(Icon(
       Icons.close,
-      color: Colors.red,
+      color: kMainRed,
     ));
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) => WillPopScope(
-        onWillPop: () async => false,
-        child: AlertDialog(
-          title: Center(
-            child: const Text(
-              'Incorrect! : <',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-          actions: <Widget>[
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  setState(() {
-                    Navigator.pop(context);
-                    if (questionController.questionNum > maxQuestionNum) {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ScoreScreen(widget.challengeID),
-                          ));
-                    }
-                    questionController.questionNumber =
-                        _random.nextInt(questionController.questionListLength);
-                  });
-                  if (questionController.questionNum > maxQuestionNum)
-                    timer!.cancel();
-                  else
-                    startTimer();
-                },
-                child: const Text('OK'),
-              ),
-            ),
-          ],
-        ),
+    Dialogs.materialDialog(
+      onClose:
+          closeAlert, // for some reason barrierDismissible option not working here, so I have to work it around the other way
+      color: Colors.white,
+      title: 'Incorrect!',
+      lottieBuilder: Lottie.asset(
+        'assets/lotties/incorrect.json',
+        fit: BoxFit.contain,
       ),
+      dialogWidth: 0.3,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            closeAlert(true);
+          },
+          text: 'Ok',
+          iconData: Icons.done,
+          color: kMainRed,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
     );
   }
 
@@ -233,8 +178,6 @@ class _QuestionCardState extends State<QuestionCard> {
         builder: (BuildContext context, AsyncSnapshot<Question> result) {
           if (result.hasData &&
               questionController.questionNum <= maxQuestionNum) {
-            String questionSeason = getQuestionSeason(result.data!);
-            String questionCompetition = getQuestionCompetition(result.data!);
             widget.currentQuestion = result.data!;
             return SizedBox(
               height: MediaQuery.of(context).size.height * 0.7,
@@ -248,77 +191,10 @@ class _QuestionCardState extends State<QuestionCard> {
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      // IMAGE SECTION
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.92,
-                            child: Card(
-                              color: kMainLightColor,
-                              child: Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(5),
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                              color: kMainDarkColor),
-                                          child: Text(
-                                            questionSeason,
-                                            style: TextStyle(
-                                                fontSize: 18,
-                                                color: kMainLightColor,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                        Image.asset(
-                                            'assets/competition_images/$questionCompetition.png',
-                                            height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
-                                                0.15),
-                                        // gives me 100% of container's height
-                                      ],
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-
-                      // QUESTION TEXT
-
-                      Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: Expanded(
-                            child: Column(
-                              children: [
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: Card(
-                                    color: kMainLightColor,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(10.0),
-                                      child: Text(
-                                          result.data!.getQuestionText(),
-                                          style: kQuestionTextStyle),
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                          )),
+                      QuestionCardImage(question: result.data!),
+                      QuestionCardText(question: result.data!)
                     ],
                   ),
-
-                  // ANSWER BUTTONS
-
                   Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -332,7 +208,6 @@ class _QuestionCardState extends State<QuestionCard> {
                                 onPressed: () {
                                   updateState(
                                       result.data!.getAnswerA(), result.data!);
-                                  timer!.cancel();
                                 },
                                 style: result.data!.getUserAnswer() ==
                                         result.data!.getAnswerA()
@@ -360,7 +235,6 @@ class _QuestionCardState extends State<QuestionCard> {
                                 onPressed: () {
                                   updateState(
                                       result.data!.getAnswerB(), result.data!);
-                                  timer!.cancel();
                                 },
                                 style: result.data!.getUserAnswer() ==
                                         result.data!.getAnswerB()
@@ -390,7 +264,6 @@ class _QuestionCardState extends State<QuestionCard> {
                                 onPressed: () {
                                   updateState(
                                       result.data!.getAnswerC(), result.data!);
-                                  timer!.cancel();
                                 },
                                 style: result.data!.getUserAnswer() ==
                                         result.data!.getAnswerC()
@@ -418,7 +291,6 @@ class _QuestionCardState extends State<QuestionCard> {
                                 onPressed: () {
                                   updateState(
                                       result.data!.getAnswerD(), result.data!);
-                                  timer!.cancel();
                                 },
                                 style: result.data!.getUserAnswer() ==
                                         result.data!.getAnswerD()
@@ -443,7 +315,7 @@ class _QuestionCardState extends State<QuestionCard> {
               ),
             );
           } else {
-            return const Center(
+            return Center(
                 child: SizedBox(
               width: 70,
               height: 70,
@@ -458,83 +330,54 @@ class _QuestionCardState extends State<QuestionCard> {
     );
   }
 
-  Widget buildTimer() => SizedBox(
+  Widget buildTimer() {
+    return CircularCountDownTimer(
         width: 70,
         height: 70,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            CircularProgressIndicator(
-              value: seconds / maxSeconds,
-              strokeWidth: 12,
-              valueColor: const AlwaysStoppedAnimation(kMainLightColor),
-              backgroundColor: kMainDarkColor,
-            ),
-            Center(
-              child: buildTime(),
-            )
-          ],
-        ),
-      );
-
-  Widget buildTime() {
-    return Text(
-      '$seconds',
-      style: kWelcomeScreenTitleTextStyle.copyWith(fontSize: 32.0),
-    );
-  }
-
-  String getQuestionSeason(Question question) {
-    return question
-            .getQuestionCode()
-            .substring(question.getQuestionCode().indexOf('_') + 1) +
-        '-' +
-        (int.parse(question
-                    .getQuestionCode()
-                    .substring(question.getQuestionCode().indexOf('_') + 1)) +
-                1)
-            .toString();
-  }
-
-  String getQuestionCompetition(Question question) {
-    return question
-        .getQuestionCode()
-        .substring(0, question.getQuestionCode().indexOf('_'));
-  }
-
-  updateAnsweredQuestions(questionID, correctAnswer) async {
-    // var answeredQuestions =
-    //     await db.getFieldData('users', loggedInUser.uid, 'answeredQuestions');
-    // int correctAnswers = 0;
-    // if (!answeredQuestions.containsKey(questionID)) {
-    //   correctAnswers = correctAnswer ? 1 : 0;
-    //   db.addMapData('users', loggedInUser.uid, 'answeredQuestions', {
-    //     questionID: {'askedTimes': 1, 'answeredCorrectly': correctAnswers}
-    //   });
-    // } else {
-    //   correctAnswers = correctAnswer ? 1 : 0;
-    //   db.incrementMapValue('users', loggedInUser.uid, 'answeredQuestions',
-    //       questionID, 1, 'askedTimes');
-    //   db.incrementMapValue('users', loggedInUser.uid, 'answeredQuestions',
-    //       questionID, correctAnswers.toDouble(), 'answeredCorrectly');
-    // }
-  }
-
-  void startTimer() {
-    seconds = maxSeconds;
-    timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (seconds > 0) {
-        setState(() {
-          seconds--;
+        strokeWidth: 12,
+        duration: maxSeconds,
+        fillColor: kMainLightColor,
+        ringColor: kMainLightColor.withOpacity(0.25),
+        isReverse: true,
+        isReverseAnimation: true,
+        isTimerTextShown: true,
+        textFormat: CountdownTextFormat.S,
+        textStyle: kWelcomeScreenTitleTextStyle.copyWith(fontSize: 30),
+        autoStart: true,
+        controller: countDownController,
+        onStart: () {
+          isOnCompleteCounterInvoked = true;
+        },
+        onComplete: () {
+          if (isOnCompleteCounterInvoked) {
+            timesUpActions();
+          }
         });
-      } else {
-        timer!.cancel();
-        timesUpActions();
-      }
-    });
   }
 
   double getFontSize(String txt) {
     return txt.length > 20 ? 12 : 16;
+  }
+
+  dynamic closeAlert(navigatorPop) {
+    if (navigatorPop != null) {
+      Navigator.pop(context);
+    }
+
+    setState(() {
+      if (questionController.questionNum > maxQuestionNum) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ScoreScreen(widget.challengeID),
+            ));
+        //Navigator.pushNamed(context, ScoreScreen.id);
+      }
+    });
+    if (questionController.questionNum > maxQuestionNum) {
+      countDownController.pause();
+    } else {
+      countDownController.restart();
+    }
   }
 }

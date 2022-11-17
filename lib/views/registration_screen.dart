@@ -218,7 +218,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ),
               ),
               onPressed: () async {
-                List<Map> competitionsMaps =
+                var competitionsMaps =
                     await widget.db.getCollectionData('competition');
                 Map<String, double> competitions = {};
                 for (var i = 0; i < competitionsMaps.length; i++) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:footix/views/dashboard/profile_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id = 'login_screen';
@@ -88,15 +89,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
             ),
-            FlatButton(
-              onPressed: () {
-                //TODO FORGOT PASSWORD SCREEN GOES HERE
-              },
-              child: const Text(
-                'Forgot Password',
-                style: TextStyle(color: Colors.blue, fontSize: 15),
-              ),
-            ),
+            TextButton(
+                onPressed: () =>
+                    Navigator.pushNamed(context, ForgotPasswordScreen.id),
+                child: Text('Forgot Password')),
             TextButton(
               style: ButtonStyle(
                 backgroundColor:
@@ -120,9 +116,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 try {
                   final user = await _auth.signInWithEmailAndPassword(
                       email: email, password: password);
-                  if (user != null) {
-                    Navigator.pushNamed(context, ProfileScreen.id);
-                  }
+                  if (!mounted) return;
+                  Navigator.pushNamed(context, ProfileScreen.id);
                 } catch (e) {
                   print(e);
                 }

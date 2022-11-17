@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:footix/views/admin_screen.dart';
 import 'package:footix/views/dashboard/answer_correctness_screen.dart';
+import 'package:footix/views/forgot_password_screen.dart';
 import 'package:footix/views/main_screen.dart';
 import 'package:provider/provider.dart';
 import 'views/welcome_screen.dart';
@@ -24,7 +26,7 @@ void main() async {
 class FootiIQ extends StatelessWidget {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  const FootiIQ({Key? key}) : super(key: key);
+  FootiIQ({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -52,6 +54,7 @@ class FootiIQ extends StatelessWidget {
           //DashboardScreen.id: (context) => DashboardScreen(),
           AdminScreen.id: (context) => AdminScreen(),
           AnswerCorrectnessScreen.id: (context) => AnswerCorrectnessScreen(),
+          ForgotPasswordScreen.id: (context) => const ForgotPasswordScreen(),
         },
         title: kAppName,
         navigatorKey: navigatorKey,

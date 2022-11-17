@@ -1,14 +1,33 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:footix/models/question.dart';
-import 'package:footix/views/components/question_card.dart';
 import 'package:uuid/uuid.dart';
 import 'package:footix/contants.dart';
+import 'dart:math';
 
 class DB {
   final firestoreInstance = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
+  /// Returns next question in queue
+  Future<dynamic> getNextQ() async {
+    // Map finalMap = {};
+    // await firestoreInstance
+    //     .collection(kQuestionDBTable)
+    //     .where('ID', isEqualTo: '0Xr3QwXkyFWpp0havOwl')
+    //     .get()
+    //     .then((value) {
+    //   finalMap = value.docs[0].data();
+    // });
+    // return finalMap;
+    final random = Random();
+    int next(int min, int max) => min + random.nextInt(max - min);
+    var allQuestions = await getCollectionData(kQuestionDBTable);
+    return allQuestions[next(0, allQuestions.length)];
+  }
+
+  /// Returns list of items in given collection
   Future<dynamic> getCollectionData(String collection,
       [var specificField]) async {
     var fieldList = [];
@@ -33,13 +52,17 @@ class DB {
         .where(field, isEqualTo: fieldValue)
         .get()
         .then((value) {
-      if (value.docs.length > 1 && allResults) {
-        collectionDataField = [];
-        for (var i = 0; i < value.docs.length; i++) {
-          collectionDataField.add(value.docs[i].data());
+      if (value.size > 0) {
+        if (allResults) {
+          collectionDataField = [];
+          for (var i = 0; i < value.docs.length; i++) {
+            collectionDataField.add(value.docs[i].data());
+          }
+        } else {
+          collectionDataField = value.docs[0].data();
         }
       } else {
-        collectionDataField = value.docs[0].data();
+        print('No data returned by getCollectionDataField');
       }
     });
     return collectionDataField;
@@ -67,6 +90,7 @@ class DB {
     });
   }
 
+  /// Returns field data of a given 'fieldName' of a given 'documentID'
   Future<dynamic> getFieldData(
       String collection, String? documentID, String fieldName) async {
     var collectionDataField;
@@ -75,7 +99,12 @@ class DB {
         .where(FieldPath.documentId, isEqualTo: documentID)
         .get()
         .then((value) {
-      collectionDataField = value.docs[0].data();
+      if (value.size > 0) {
+        collectionDataField = value.docs[0].data();
+      } else {
+        print(
+            'No data returned by getFieldData: collection - $collection, documentID - $documentID, fieldName - $fieldName');
+      }
     });
     return collectionDataField[fieldName];
   }
@@ -187,8 +216,8 @@ class DB {
   }
 
   getAnswerCorrectnessMap(String? userID) async {
-    var allUserChallenges = await getCollectionDataField(
-        'challenges', 'user', _auth.currentUser!.uid, true);
+    var allUserChallenges =
+        await getCollectionDataField('challenges', 'user', userID!, true);
     Map<String, double> answerCorrectness = {
       'askedTimesTotal': 0,
       'answeredCorrectlyTotal': 0
@@ -205,34 +234,40 @@ class DB {
         }
       }
     }
-
     return answerCorrectness;
   }
 
+  /// Returns all or one documents where 'field' is equal to 'fieldValue'
   getDocumentIDWhereFieldEquals(
       String collection, String field, String fieldValue,
       [bool allResults = false]) async {
     var collectionDataField;
-    await firestoreInstance
-        .collection(collection)
-        .where(field, isEqualTo: fieldValue)
-        .get()
-        .then((value) {
-      if (value.docs.length > 1 && allResults) {
-        collectionDataField = [];
-        for (var i = 0; i < value.docs.length; i++) {
-          collectionDataField.add(value.docs[i].id);
+    try {
+      await firestoreInstance
+          .collection(collection)
+          .where(field, isEqualTo: fieldValue)
+          .get()
+          .then((value) {
+        if (allResults) {
+          collectionDataField = [];
+          for (var i = 0; i < value.docs.length; i++) {
+            collectionDataField.add(value.docs[i].id);
+          }
+        } else {
+          collectionDataField = value.docs[0].id;
         }
-      } else {
-        collectionDataField = value.docs[0].id;
-      }
-    });
-    return collectionDataField;
+      });
+      return collectionDataField;
+    } on Exception catch (e) {
+      print('ERROR $e');
+    }
   }
 
-  getUserAnsweredQuestions() async {
-    var allUserAnsweredChallenges = await getDocumentIDWhereFieldEquals(
-        'challenges', 'user', _auth.currentUser!.uid, true);
+  /// Returns all questions answered by user with given ID or by logged in user if no arguments given
+  getUserAnsweredQuestions([String? userID]) async {
+    String ID = userID ?? _auth.currentUser!.uid;
+    var allUserAnsweredChallenges =
+        await getDocumentIDWhereFieldEquals('challenges', 'user', ID, true);
     var allUserAnsweredQuestions = [];
     for (var i = 0; i < allUserAnsweredChallenges.length; i++) {
       var currentQuestions = await getFieldData(
@@ -246,8 +281,8 @@ class DB {
     return finalMap;
   }
 
-  getUserAnsweredQuestionsByComp() async {
-    // retrieving all user's questions
+  /// Retrieving all user's questions
+  Future<Map> getUserAnsweredQuestionsByComp() async {
     var allUserAnsweredQuestions = await getUserAnsweredQuestions();
     var finalMap = {};
     for (var i = 0; i < allUserAnsweredQuestions.keys.toList().length; i++) {
@@ -263,6 +298,155 @@ class DB {
         allUserAnsweredQuestions.keys.toList()[i]:
             allUserAnsweredQuestions[allUserAnsweredQuestions.keys.toList()[i]]
       });
+    }
+    return finalMap;
+  }
+
+  /// Retrieving all user's questions exp
+  Future<Map> getUserExpByComp() async {
+    var finalMap = {};
+    var userAnsweredQuestionsByComp = await getUserAnsweredQuestionsByComp();
+    for (var i = 0; i < userAnsweredQuestionsByComp.length; i++) {
+      var currentComp = userAnsweredQuestionsByComp.keys.toList()[i];
+      for (var j = 0;
+          j < userAnsweredQuestionsByComp[currentComp].length;
+          j++) {
+        var currentQuestionID = userAnsweredQuestionsByComp[currentComp][j];
+        var currentQData = await getCollectionDataField(
+            kQuestionDBTable, 'ID', currentQuestionID.keys.toList()[0]);
+        if (finalMap[currentComp] == null) {
+          finalMap[currentComp] = 0;
+        }
+        finalMap[currentComp] = finalMap[currentComp] +
+            (currentQData['difficulty'] * kDifficultyExpMultiplier);
+      }
+    }
+    return finalMap;
+  }
+
+  /// Returns correct and incorrect answers number for all competitions
+  Future<Map> getAllCompAnswerCorrectnessNum() async {
+    var allUserAnsweredQuestions = await getUserAnsweredQuestions();
+    //Map<String, int> finalMap = {'correct': 0, 'incorrect': 0};
+
+    var finalMap = {};
+    //print(allUserAnsweredQuestions);
+    for (var i = 0; i < allUserAnsweredQuestions.length; i++) {
+      String currentKey = allUserAnsweredQuestions.keys.toList()[i];
+      bool currentValue =
+          allUserAnsweredQuestions[allUserAnsweredQuestions.keys.toList()[i]];
+      var currentQuestionCode =
+          await getFieldData(kQuestionDBTable, currentKey, 'docCode');
+      String currentQuestionCodeSanitized =
+          currentQuestionCode.substring(0, currentQuestionCode.indexOf('_'));
+
+      if (finalMap[currentQuestionCodeSanitized] == null) {
+        finalMap[currentQuestionCodeSanitized] = {};
+        finalMap[currentQuestionCodeSanitized]['correct'] = 0;
+        finalMap[currentQuestionCodeSanitized]['incorrect'] = 0;
+      }
+
+      if (currentValue == true) {
+        finalMap[currentQuestionCodeSanitized]['correct'] =
+            finalMap[currentQuestionCodeSanitized]['correct'] + 1;
+      } else {
+        finalMap[currentQuestionCodeSanitized]['incorrect'] =
+            finalMap[currentQuestionCodeSanitized]['incorrect'] + 1;
+      }
+    }
+
+    return finalMap;
+  }
+
+  /// Returns correct and incorrect answers number for a given competition or in total if the argument is not passed
+  Future<Map> getCompAnswerCorrectness([String? competitionCode]) async {
+    var allUserAnsweredQuestions = await getUserAnsweredQuestions();
+    Map<String, int> finalMap = {'correct': 0, 'incorrect': 0};
+    for (var i = 0; i < allUserAnsweredQuestions.keys.toList().length; i++) {
+      var currentQuestionCode = await getFieldData(kQuestionDBTable,
+          allUserAnsweredQuestions.keys.toList()[i], 'docCode');
+      String currentQuestionCodeSanitized =
+          currentQuestionCode.substring(0, currentQuestionCode.indexOf('_'));
+      if (competitionCode != null) {
+        if (currentQuestionCodeSanitized == competitionCode) {
+          if (allUserAnsweredQuestions[
+                  allUserAnsweredQuestions.keys.toList()[i]] ==
+              true) {
+            finalMap['correct'] = finalMap['correct']! + 1;
+          } else {
+            finalMap['incorrect'] = finalMap['incorrect']! + 1;
+          }
+        }
+      } else {
+        if (allUserAnsweredQuestions[
+                allUserAnsweredQuestions.keys.toList()[i]] ==
+            true) {
+          finalMap['correct'] = finalMap['correct']! + 1;
+        } else {
+          finalMap['incorrect'] = finalMap['incorrect']! + 1;
+        }
+      }
+    }
+
+    return finalMap;
+  }
+
+  /// Returns total number of given user's exp points
+  getUserTotalExp([String? userID]) async {
+    String ID = userID ?? _auth.currentUser!.uid;
+    Map allUserAnsweredQuestions = await getUserAnsweredQuestions(ID);
+
+    List answeredCorrectly = [];
+    allUserAnsweredQuestions.forEach((key, value) {
+      if (value) answeredCorrectly.add(key);
+    });
+
+    double totalExp = 0;
+    for (String questionID in answeredCorrectly) {
+      var currentQuestion =
+          await getFieldData(kQuestionDBTable, questionID, 'difficulty');
+      totalExp += kDifficultyExpMultiplier * currentQuestion;
+    }
+
+    return totalExp;
+  }
+
+  /// Returns all users IDs sorted by exp descending
+  getGlobalRanking() async {
+    List allUsers = await getCollectionData('users', 'ID');
+    Map allUsersExpMap = {};
+    for (var user in allUsers) {
+      allUsersExpMap[user] = await getUserTotalExp(user);
+    }
+    allUsersExpMap = Map.fromEntries(allUsersExpMap.entries.toList()
+      ..sort((e2, e1) => e1.value.compareTo(e2.value)));
+    return allUsersExpMap;
+  }
+
+  /// Returns short version of global ranking - only 'adjacentNum' positions below and above given userID
+  getShortGlobalRanking([String? userID, int adjacentNum = 1]) async {
+    String ID = userID ?? _auth.currentUser!.uid;
+
+    var globalRanking = await getGlobalRanking();
+    int userRanking = globalRanking.keys.toList().indexOf(ID);
+    int upperLimit =
+        userRanking - adjacentNum < 1 ? 0 : userRanking - adjacentNum;
+    int lowerLimit = userRanking + adjacentNum >= globalRanking.length
+        ? globalRanking.length - 1
+        : userRanking + adjacentNum;
+    // filling the gap
+    if (userRanking <= adjacentNum) lowerLimit = lowerLimit + adjacentNum;
+    //
+    var globalRankingShort = Map.fromIterables(
+        globalRanking.keys.skip(upperLimit).take(lowerLimit + 1),
+        globalRanking.values.skip(upperLimit).take(lowerLimit + 1));
+    var finalMap = {};
+    int counter = 0;
+    for (var key in globalRankingShort.keys.toList()) {
+      finalMap[key] = {};
+      finalMap[key]['exp'] = globalRankingShort[key];
+      finalMap[key]['ranking'] = (userRanking + 1) + counter;
+      counter++;
     }
     return finalMap;
   }

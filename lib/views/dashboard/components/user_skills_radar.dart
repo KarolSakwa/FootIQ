@@ -3,7 +3,6 @@ import 'package:footix/contants.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/models/database.dart';
-import 'dart:math';
 
 class UserSkillsRadar extends StatefulWidget {
   double? width, height;
@@ -27,28 +26,34 @@ class _UserSkillsRadarState extends State<UserSkillsRadar> {
         future: Future.wait([
           db.getMaximumExpCompetitionsMap(),
           db.getCollectionData('competition'),
-          db.getCollectionDataField('users', 'email', userEmail!)
+          db.getUserExpByComp()
         ]),
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
           if (snapshot.hasError) {
-            return Container(
+            return SizedBox(
                 width: widget.width,
                 height: widget.height,
                 child: const Text("Error Occurred"));
           }
           switch (snapshot.connectionState) {
             case ConnectionState.waiting:
-              return Container(
+              return SizedBox(
                   width: widget.width,
                   height: widget.height,
-                  child: Center(child: CircularProgressIndicator()));
+                  child: Center(child: const CircularProgressIndicator()));
             case ConnectionState.done:
               return Center(
                   child: widget.fullScreen
-                      ? Scaffold(body: mainContent(snapshot))
+                      ? Scaffold(
+                          body: mainContent(snapshot),
+                          appBar: AppBar(
+                            title: const Text("Profile"),
+                            backgroundColor: kMainDarkColor,
+                          ),
+                        )
                       : mainContent(snapshot));
             default:
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
           }
         });
   }
@@ -58,12 +63,11 @@ class _UserSkillsRadarState extends State<UserSkillsRadar> {
     List<int> competitionsMaximumExpList = [];
     for (var i = 0; i < competitionsMaximumExp.length; i++) {
       competitionsMaximumExpList
-          .add((competitionsMaximumExp[i].toInt() / 3).toInt());
+          .add((competitionsMaximumExp[i].toInt()).toInt());
     }
 
     List<int> ticks = getTicksList(competitionsMaximumExpList, 3);
-    Map dataMap = getLoggedInUserExpMap(
-        snapshot.data[1], snapshot.data[2], snapshot.data[0]);
+    Map dataMap = getLoggedInUserExpMap(snapshot.data[1], snapshot.data[2]);
     return SafeArea(
       child: SizedBox(
         width: widget.width,
@@ -88,7 +92,7 @@ class _UserSkillsRadarState extends State<UserSkillsRadar> {
                     child: RadarChart.dark(
                   ticks: ticks,
                   features: dataMap['names'],
-                  data: [dataMap['userExp']],
+                  data: [dataMap['exps']],
                   reverseAxis: false,
                   useSides: true,
                 )),
@@ -98,31 +102,21 @@ class _UserSkillsRadarState extends State<UserSkillsRadar> {
     );
   }
 
-  getLoggedInUserExpMap(competitions, userData, expList) {
-    var competitionMap = {};
-    for (var i = 0; i < competitions.length; i++) {
-      competitionMap[competitions[i]['tm_code']] = {
-        'name': competitions[i]['name'],
-        'userExp': userData['exp'][competitions[i]['tm_code']] ?? 0,
-        'maxExp': expList[competitions[i]['tm_code']]
-      };
+  getLoggedInUserExpMap(competitions, expMap) {
+    Map finalMap = {};
+    finalMap['exps'] = <num>[];
+    finalMap['names'] = <String>[];
+    for (var i = 0; i < expMap.length; i++) {
+      var currentCompCode = expMap.keys.toList()[i];
+      for (var j = 0; j < competitions.length; j++) {
+        var currentCompMap = competitions[j];
+        if (currentCompCode == currentCompMap['tm_code']) {
+          finalMap['exps'].add(expMap[currentCompCode]);
+          finalMap['names'].add(currentCompMap['name']);
+        }
+      }
     }
-    List<String> competitionsNames = [];
-    List<double> competitionsUserExp = [];
-    List<double> competitionsMaxExp = [];
-    for (var i = 0; i < competitionMap.length; i++) {
-      competitionsNames.add(competitionMap[competitions[i]['tm_code']]['name']);
-      competitionsUserExp.add(
-          competitionMap[competitions[i]['tm_code']]['userExp'].toDouble());
-      competitionsMaxExp
-          .add(competitionMap[competitions[i]['tm_code']]['maxExp'].toDouble());
-    }
-    Map finalMap = {
-      'raw': competitionMap,
-      'names': competitionsNames,
-      'userExp': competitionsUserExp,
-      'maxExp': competitionsMaxExp
-    };
+
     return finalMap;
   }
 

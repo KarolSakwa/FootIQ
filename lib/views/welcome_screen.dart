@@ -3,6 +3,7 @@ import 'package:footix/contants.dart';
 import 'package:footix/views/login_screen.dart';
 import 'package:footix/views/admin_screen.dart';
 import 'package:footix/views/registration_screen.dart';
+import 'components/fi_button.dart';
 import 'quick_challenge_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -22,74 +23,56 @@ class WelcomeScreen extends StatelessWidget {
               Center(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 100.0),
-                  child: TextButton(
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(kMainMediumColor),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 18.0, horizontal: 60),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(
-                            Icons.local_fire_department,
-                            color: kMainLightColor,
-                          ),
-                          SizedBox(
-                            width: 10.0,
-                          ),
-                          Text(
-                            'Quick Challenge',
-                            style: TextStyle(
-                                fontSize: 20.0, color: kMainLightColor),
-                          ),
-                        ],
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all<Color>(kMainMediumColor),
                       ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 18.0, horizontal: 60),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(
+                              Icons.local_fire_department,
+                              color: kMainLightColor,
+                            ),
+                            SizedBox(
+                              width: 10.0,
+                            ),
+                            Text(
+                              'Quick Challenge',
+                              style: TextStyle(
+                                  fontSize: 20.0, color: kMainLightColor),
+                            ),
+                          ],
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pushNamed(context, QuickChallengeScreen.id);
+                      },
                     ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, QuickChallengeScreen.id);
-                    },
                   ),
                 ),
               ),
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: TextButton(
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(kMainGreyColor),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 18.0, horizontal: 105.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(
-                            Icons.person,
-                            color: kMainLightColor,
-                          ),
-                          SizedBox(
-                            width: 10.0,
-                          ),
-                          Text(
-                            'Log In',
-                            style: TextStyle(
-                                fontSize: 20.0, color: kMainLightColor),
-                          ),
-                        ],
+                    padding: const EdgeInsets.only(top: 20.0),
+                    child: FIButton(
+                      text: 'Log In',
+                      icon: Icon(
+                        Icons.person,
+                        color: kMainLightColor,
                       ),
-                    ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, LoginScreen.id);
-                    },
-                  ),
-                ),
+                      backgroundColor:
+                          MaterialStateProperty.all(kMainGreyColor),
+                      onPressed: () =>
+                          Navigator.pushNamed(context, LoginScreen.id),
+                    )),
               ),
               const SizedBox(
                 height: 20,
