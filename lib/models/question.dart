@@ -1,93 +1,75 @@
-class Question {
-  String _imgSrc = '',
-      _ID = '',
-      _questionText = '',
-      _answerA = '',
-      _answerB = '',
-      _answerC = '',
-      _answerD = '',
-      _correctAnswer = '',
-      _userAnswer = '',
-      _questionCode = '',
-      _questionCategory = '';
-  double _difficulty = 0;
+import 'competition.dart';
 
-  Question(
-      {String imgSrc = '',
-      String questionCategory = '',
-      required String ID,
-      required String questionText,
-      required String answerA,
-      required String answerB,
-      required String answerC,
-      required String answerD,
-      required String correctAnswer,
-      required String questionCode,
-      String userAnswer = '',
-      required double difficulty}) {
-    _imgSrc = imgSrc;
-    _ID = ID;
-    _questionText = questionText;
-    _answerA = answerA;
-    _answerB = answerB;
-    _answerC = answerC;
-    _answerD = answerD;
-    _correctAnswer = correctAnswer;
-    _userAnswer = userAnswer;
-    _questionCode = questionCode;
-    _questionCategory = questionCategory;
-    _difficulty = difficulty;
-  }
+class Question {
+  String imgSrc;
+  int id;
+  String questionText;
+  String answerA;
+  String answerB;
+  String answerC;
+  String answerD;
+  String correctAnswer;
+  String userAnswer;
+  double difficulty;
+  Competition competition;
+  int year;
+
+  Question({
+    this.imgSrc = '',
+    required this.id,
+    required this.questionText,
+    required this.answerA,
+    required this.answerB,
+    required this.answerC,
+    required this.answerD,
+    required this.correctAnswer,
+    this.userAnswer = '',
+    required this.difficulty,
+    required this.competition,
+    required this.year,
+  });
 
   String getImgSrc() {
-    return _imgSrc;
+    return imgSrc;
   }
 
-  String getID() {
-    return _ID;
+  int getID() {
+    return id;
   }
 
   String getQuestionText() {
-    return _questionText;
+    return questionText;
   }
 
   String getAnswerA() {
-    return _answerA;
+    return answerA;
   }
 
   String getAnswerB() {
-    return _answerB;
+    return answerB;
   }
 
   String getAnswerC() {
-    return _answerC;
+    return answerC;
   }
 
   String getAnswerD() {
-    return _answerD;
+    return answerD;
   }
 
   String getCorrectAnswer() {
-    return _correctAnswer;
+    return correctAnswer;
   }
 
   String getUserAnswer() {
-    return _userAnswer;
-  }
-
-  String getQuestionCategory() {
-    return _questionCategory;
-  }
-
-  String getQuestionCode() {
-    return _questionCode;
+    return userAnswer;
   }
 
   double getQuestionDifficulty() {
-    return _difficulty;
+    return difficulty;
   }
 
-  setUserAnswer(userAnswer) {
-    _userAnswer = userAnswer;
+  void setUserAnswer(String userAnswer) {
+    this.userAnswer = userAnswer;
   }
 }

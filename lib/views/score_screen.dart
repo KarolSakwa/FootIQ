@@ -12,7 +12,6 @@ import 'dashboard/components/user_answer_correctneess_pie_chart.dart';
 
 class ScoreScreen extends StatefulWidget {
   final _auth = FirebaseAuth.instance;
-  late User loggedInUser;
   final db = DB();
   static const String id = 'score_screen';
   String challengeID = '';
@@ -28,10 +27,6 @@ class ScoreScreen extends StatefulWidget {
 class _ScoreScreenState extends State<ScoreScreen> {
   @override
   void initState() {
-    if (widget._auth.currentUser != null) {
-      loggedInUser = widget._auth.currentUser!;
-    }
-
     super.initState();
   }
 
@@ -42,7 +37,8 @@ class _ScoreScreenState extends State<ScoreScreen> {
         widget._auth.currentUser == null ? MainScreen.id : ProfileScreen.id;
 
     return FutureBuilder(
-        future: db.getFieldData('challenges', widget.challengeID, 'questions'),
+        future: widget.db
+            .getFieldData('challenges', widget.challengeID, 'questions'),
         builder: (BuildContext context, AsyncSnapshot result) {
           int correctAnswersNum = getCorrectAnswersNum(result.data);
           return WillPopScope(
@@ -118,7 +114,6 @@ class _ScoreScreenState extends State<ScoreScreen> {
                       onPressed: () {
                         Navigator.pushNamed(context, goBackDirection);
                       },
-                      splashColor: Colors.redAccent,
                     )
                   ],
                 ),
@@ -126,12 +121,6 @@ class _ScoreScreenState extends State<ScoreScreen> {
             ),
           );
         });
-  }
-
-  String getQuestionCompetition(Question question) {
-    return question
-        .getQuestionCode()
-        .substring(0, question.getQuestionCode().indexOf('_'));
   }
 
   getCorrectAnswersNum(Map questionsList) {

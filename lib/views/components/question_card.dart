@@ -17,12 +17,12 @@ QuestionController questionController = QuestionController();
 
 int maxQuestionNum = 5;
 List<Question> answeredQuestionList = [];
-const maxSeconds = 3;
-late User loggedInUser;
+const maxSeconds = 15;
 final db = DB();
 List<Icon> scoreKeeper = [];
 CountDownController countDownController = CountDownController();
 bool isOnCompleteCounterInvoked = false;
+final _auth = FirebaseAuth.instance;
 
 class QuestionCard extends StatefulWidget {
   String challengeID;
@@ -51,6 +51,7 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   void updateState(answerText, currentQuestion) {
+    String currentQuestionComp = currentQuestion.competition.code;
     answeredQuestionList.add(currentQuestion);
     currentQuestion.setUserAnswer(answerText);
     Future.delayed(const Duration(milliseconds: 0), () {
@@ -58,11 +59,21 @@ class _QuestionCardState extends State<QuestionCard> {
       if (answerText == currentQuestion.getCorrectAnswer()) {
         correctAnswerActions();
         db.appendMapValue('challenges', widget.challengeID, 'questions',
-            currentQuestion.getID(), true);
+            currentQuestion.getID().toString(), true);
+        if (_auth.currentUser != null) {
+          db.incrementUserCompExp(_auth.currentUser!.uid, currentQuestionComp,
+              currentQuestion.getQuestionDifficulty() * 2);
+          db.incrementMapValue('users', _auth.currentUser!.uid,
+              'answeredQuestions', currentQuestionComp, 1, 'correct');
+        }
       } else {
         inCorrectAnswerActions();
         db.appendMapValue('challenges', widget.challengeID, 'questions',
-            currentQuestion.getID(), false);
+            currentQuestion.getID().toString(), false);
+        if (_auth.currentUser != null) {
+          db.incrementMapValue('users', _auth.currentUser!.uid,
+              'answeredQuestions', currentQuestionComp, 1, 'incorrect');
+        }
       }
     });
     questionController.questionNum++;
@@ -71,7 +82,7 @@ class _QuestionCardState extends State<QuestionCard> {
   void timesUpActions() {
     isOnCompleteCounterInvoked = false;
     db.appendMapValue('challenges', widget.challengeID, 'questions',
-        widget.currentQuestion!.getID(), false);
+        widget.currentQuestion!.getID().toString(), false);
     scoreKeeper.add(Icon(
       Icons.close,
       color: Colors.red,
@@ -95,7 +106,7 @@ class _QuestionCardState extends State<QuestionCard> {
           },
           text: 'Ok',
           iconData: Icons.done,
-          color: kMainRed,
+          color: Colors.red,
           textStyle: TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
@@ -128,7 +139,7 @@ class _QuestionCardState extends State<QuestionCard> {
           },
           text: 'Ok',
           iconData: Icons.done,
-          color: kMainLightColor,
+          color: Colors.green,
           textStyle: TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
@@ -141,7 +152,7 @@ class _QuestionCardState extends State<QuestionCard> {
     countDownController.pause();
     scoreKeeper.add(Icon(
       Icons.close,
-      color: kMainRed,
+      color: Colors.red,
     ));
     Dialogs.materialDialog(
       onClose:
@@ -161,7 +172,7 @@ class _QuestionCardState extends State<QuestionCard> {
           },
           text: 'Ok',
           iconData: Icons.done,
-          color: kMainRed,
+          color: Colors.red,
           textStyle: TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
@@ -171,10 +182,11 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   Widget build(BuildContext context) {
+    questionController.getAllUserAnsweredQuestions();
     return WillPopScope(
       onWillPop: () async => false,
       child: FutureBuilder<Question>(
-        future: questionController.getNextQuestion(),
+        future: questionController.getRandomQuestion(),
         builder: (BuildContext context, AsyncSnapshot<Question> result) {
           if (result.hasData &&
               questionController.questionNum <= maxQuestionNum) {

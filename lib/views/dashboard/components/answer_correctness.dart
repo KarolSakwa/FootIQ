@@ -17,7 +17,7 @@ class _AnswerCorrectnessState extends State<AnswerCorrectness> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: widget.db.getCompAnswerCorrectness(),
+        future: widget.db.getTotalAnswerCorrectness(),
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -25,9 +25,11 @@ class _AnswerCorrectnessState extends State<AnswerCorrectness> {
             );
           } else if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {
+            var correctAnswers = snapshot.data['correct'].toInt();
+            var incorrectAnswers = snapshot.data['incorrect'].toInt();
             return UserAnswerCorrectnessPieChart(
-                correctAnswers: snapshot.data['correct'],
-                incorrectAnswers: snapshot.data['incorrect']);
+                correctAnswers: correctAnswers,
+                incorrectAnswers: incorrectAnswers);
           } else {
             return Container(
                 child: Column(

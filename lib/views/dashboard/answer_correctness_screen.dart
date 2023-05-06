@@ -27,7 +27,7 @@ class _AnswerCorrectnessScreenState extends State<AnswerCorrectnessScreen> {
         ),
         body: FutureBuilder<List>(
           future: Future.wait(
-              [competitionPieCharts2(), widget.db.getCompAnswerCorrectness()]),
+              [competitionPieCharts2(), widget.db.getTotalAnswerCorrectness()]),
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: const CircularProgressIndicator());
@@ -96,7 +96,7 @@ class _AnswerCorrectnessScreenState extends State<AnswerCorrectnessScreen> {
   }
 
   Future<Widget> competitionPieCharts2() async {
-    var allCompsMapFull = await widget.db.getAllCompAnswerCorrectnessNum();
+    var allCompsMapFull = await widget.db.getCompAnswerCorrectness();
 
     List<Widget> widgetList = [];
     for (var i = 0; i < allCompsMapFull.length; i++) {

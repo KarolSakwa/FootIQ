@@ -8,7 +8,7 @@ const kMainCardColor = Color(0xff10263d);
 const kMainLightColor = Color(0xffd4ecdd);
 const kMainMediumColor = Color(0xff7facb4);
 const kMainGreyColor = Color(0xff717575);
-const kMainRed = Color(0xff892971);
+const kMainRed = Color(0xff681922);
 const kMainDefaultPadding = 16.0;
 const kMainCardPadding = 8.0;
 
@@ -52,3 +52,11 @@ String kNoAnsweredQuestions = 'No answered questions!';
 String kQuestionDBTable = 'new_final_questions';
 String kTooLittleData =
     'Too little data! Complete your first challenge to access your stats!';
+
+List<Map> compMaxExpMapDebug2 = [
+  {'code': 'GB1', 'exp': 500, 'name': 'Premier League'},
+  {'code': 'L1', 'exp': 500, 'name': 'Bundesliga'},
+  {'code': 'ES1', 'exp': 500, 'name': 'La Liga'},
+  {'code': 'FR1', 'exp': 500, 'name': 'Ligue 1'},
+  {'code': 'IT1', 'exp': 500, 'name': 'Serie A'},
+];

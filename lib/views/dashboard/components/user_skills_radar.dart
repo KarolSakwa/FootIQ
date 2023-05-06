@@ -3,6 +3,7 @@ import 'package:footix/contants.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/models/database.dart';
+import 'package:footix/views/components/question_card.dart';
 
 class UserSkillsRadar extends StatefulWidget {
   double? width, height;
@@ -24,9 +25,8 @@ class _UserSkillsRadarState extends State<UserSkillsRadar> {
     var userEmail = widget._auth.currentUser?.email;
     return FutureBuilder(
         future: Future.wait([
-          db.getMaximumExpCompetitionsMap(),
-          db.getCollectionData('competition'),
-          db.getUserExpByComp()
+          db.getCollectionDataField(
+              'users', 'ID', widget._auth.currentUser!.uid)
         ]),
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
           if (snapshot.hasError) {
@@ -59,7 +59,11 @@ class _UserSkillsRadarState extends State<UserSkillsRadar> {
   }
 
   Widget mainContent(snapshot) {
-    var competitionsMaximumExp = snapshot.data[0].values.toList();
+    var competitionsMaximumExp = [];
+    compMaxExpMapDebug2.forEach((element) {
+      competitionsMaximumExp.add(element['exp']);
+    });
+
     List<int> competitionsMaximumExpList = [];
     for (var i = 0; i < competitionsMaximumExp.length; i++) {
       competitionsMaximumExpList
@@ -67,7 +71,7 @@ class _UserSkillsRadarState extends State<UserSkillsRadar> {
     }
 
     List<int> ticks = getTicksList(competitionsMaximumExpList, 3);
-    Map dataMap = getLoggedInUserExpMap(snapshot.data[1], snapshot.data[2]);
+    Map dataMap = getLoggedInUserExpMap(snapshot.data[0]);
     return SafeArea(
       child: SizedBox(
         width: widget.width,
@@ -102,21 +106,19 @@ class _UserSkillsRadarState extends State<UserSkillsRadar> {
     );
   }
 
-  getLoggedInUserExpMap(competitions, expMap) {
-    Map finalMap = {};
-    finalMap['exps'] = <num>[];
-    finalMap['names'] = <String>[];
-    for (var i = 0; i < expMap.length; i++) {
-      var currentCompCode = expMap.keys.toList()[i];
-      for (var j = 0; j < competitions.length; j++) {
-        var currentCompMap = competitions[j];
-        if (currentCompCode == currentCompMap['tm_code']) {
-          finalMap['exps'].add(expMap[currentCompCode]);
-          finalMap['names'].add(currentCompMap['name']);
-        }
-      }
+  getLoggedInUserExpMap(expMap) {
+    var compCode = expMap['exp'];
+    List<String> namesList = [];
+    List<num> expsList = [];
+    for (var i = 0; i < compCode.keys.length; i++) {
+      var current = compMaxExpMapDebug2
+          .where((m) => m['code'].startsWith(compCode.keys.toList()[i]));
+      namesList.add(current.toList()[0]['name']);
+      expsList.add(compCode[current.toList()[0]['code']]);
     }
-
+    var finalMap = {};
+    finalMap['names'] = namesList;
+    finalMap['exps'] = expsList;
     return finalMap;
   }
 

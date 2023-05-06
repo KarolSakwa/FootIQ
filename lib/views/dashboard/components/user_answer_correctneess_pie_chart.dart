@@ -18,6 +18,9 @@ class UserAnswerCorrectnessPieChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    correctAnswers ??= 0;
+    incorrectAnswers ??= 0;
+
     var answerCorrectnessPercentage =
         correctAnswers != 0 || incorrectAnswers != 0
             ? ((correctAnswers! / (correctAnswers! + incorrectAnswers!)) * 100)
@@ -27,7 +30,8 @@ class UserAnswerCorrectnessPieChart extends StatelessWidget {
     return Center(
         child: Padding(
       padding: const EdgeInsets.symmetric(vertical: kMainDefaultPadding),
-      child: answerCorrectnessPercentage == null
+      child: answerCorrectnessPercentage == null &&
+              answerCorrectnessPercentage != 0
           ? Text(
               kNoAnsweredQuestions,
               style: kWelcomeScreenTitleTextStyle.copyWith(fontSize: 14),
@@ -35,7 +39,7 @@ class UserAnswerCorrectnessPieChart extends StatelessWidget {
           : PieChart(
               centerText: answerCorrectnessPercentage.toString() + '%',
               centerTextStyle: kWelcomeScreenTitleTextStyle.copyWith(
-                  fontSize: 25, color: getColor(answerCorrectnessPercentage)),
+                  fontSize: 25, color: getColor(answerCorrectnessPercentage!)),
               dataMap: {
                 'correct': correctAnswers!.toDouble(),
                 'incorrect': incorrectAnswers!.toDouble()

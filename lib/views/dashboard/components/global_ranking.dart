@@ -5,21 +5,21 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../../models/database.dart';
 
-class GlobalRanking extends StatefulWidget {
+class GlobalRanking extends StatelessWidget {
   GlobalRanking({Key? key}) : super(key: key);
 
   final db = DB();
   final _auth = FirebaseAuth.instance;
 
-  @override
-  _GlobalRankingState createState() => _GlobalRankingState();
-}
+//   @override
+//   _GlobalRankingState createState() => _GlobalRankingState();
+// }
 
-class _GlobalRankingState extends State<GlobalRanking> {
+//class _GlobalRankingState extends State<GlobalRanking> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: widget.db.getShortGlobalRanking(),
+        future: db.getShortGlobalRanking(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.hasData &&
               snapshot.connectionState == ConnectionState.done) {
@@ -34,12 +34,12 @@ class _GlobalRankingState extends State<GlobalRanking> {
                     onTap: () {},
                     child: Card(
                       child: ListTile(
-                        tileColor: userID == widget._auth.currentUser!.uid
+                        tileColor: userID == _auth.currentUser!.uid
                             ? kMainMediumColor
                             : kMainGreyColor,
                         title: FutureBuilder(
-                          future: widget.db
-                              .getCollectionDataField('users', 'ID', userID),
+                          future:
+                              db.getCollectionDataField('users', 'ID', userID),
                           builder:
                               (BuildContext context, AsyncSnapshot userData) {
                             if (userData.connectionState ==
@@ -49,10 +49,9 @@ class _GlobalRankingState extends State<GlobalRanking> {
                                 '${rankingItem['ranking']}. ${userData.data['name']}',
                                 style: TextStyle(
                                     color: kMainLightColor,
-                                    fontWeight:
-                                        userID == widget._auth.currentUser!.uid
-                                            ? FontWeight.bold
-                                            : FontWeight.normal),
+                                    fontWeight: userID == _auth.currentUser!.uid
+                                        ? FontWeight.bold
+                                        : FontWeight.normal),
                               );
                             } else {
                               return Container(

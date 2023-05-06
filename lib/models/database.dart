@@ -10,23 +10,6 @@ class DB {
   final firestoreInstance = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
-  /// Returns next question in queue
-  Future<dynamic> getNextQ() async {
-    // Map finalMap = {};
-    // await firestoreInstance
-    //     .collection(kQuestionDBTable)
-    //     .where('ID', isEqualTo: '0Xr3QwXkyFWpp0havOwl')
-    //     .get()
-    //     .then((value) {
-    //   finalMap = value.docs[0].data();
-    // });
-    // return finalMap;
-    final random = Random();
-    int next(int min, int max) => min + random.nextInt(max - min);
-    var allQuestions = await getCollectionData(kQuestionDBTable);
-    return allQuestions[next(0, allQuestions.length)];
-  }
-
   /// Returns list of items in given collection
   Future<dynamic> getCollectionData(String collection,
       [var specificField]) async {
@@ -160,7 +143,7 @@ class DB {
 
   void incrementMapValue(String collection, String document, String map,
       String mapField, double value,
-      [String? nestedMapField]) {
+      [String? nestedMapField, String? nestedInsideNestedMapField]) {
     if (nestedMapField == '') {
       firestoreInstance
           .collection(collection)
@@ -170,6 +153,10 @@ class DB {
       firestoreInstance.collection(collection).doc(document).update(
           {'$map.$mapField.$nestedMapField': FieldValue.increment(value)});
     }
+    // if (nestedInsideNestedMapField != '') {
+    //   firestoreInstance.collection(collection).doc(document).update(
+    //       {'$map.$mapField.$nestedMapField': FieldValue.increment(value)});
+    // }
   }
 
   void appendMapValue(String collection, String document, String map,
@@ -330,7 +317,6 @@ class DB {
     //Map<String, int> finalMap = {'correct': 0, 'incorrect': 0};
 
     var finalMap = {};
-    //print(allUserAnsweredQuestions);
     for (var i = 0; i < allUserAnsweredQuestions.length; i++) {
       String currentKey = allUserAnsweredQuestions.keys.toList()[i];
       bool currentValue =
@@ -360,34 +346,26 @@ class DB {
 
   /// Returns correct and incorrect answers number for a given competition or in total if the argument is not passed
   Future<Map> getCompAnswerCorrectness([String? competitionCode]) async {
-    var allUserAnsweredQuestions = await getUserAnsweredQuestions();
-    Map<String, int> finalMap = {'correct': 0, 'incorrect': 0};
-    for (var i = 0; i < allUserAnsweredQuestions.keys.toList().length; i++) {
-      var currentQuestionCode = await getFieldData(kQuestionDBTable,
-          allUserAnsweredQuestions.keys.toList()[i], 'docCode');
-      String currentQuestionCodeSanitized =
-          currentQuestionCode.substring(0, currentQuestionCode.indexOf('_'));
-      if (competitionCode != null) {
-        if (currentQuestionCodeSanitized == competitionCode) {
-          if (allUserAnsweredQuestions[
-                  allUserAnsweredQuestions.keys.toList()[i]] ==
-              true) {
-            finalMap['correct'] = finalMap['correct']! + 1;
-          } else {
-            finalMap['incorrect'] = finalMap['incorrect']! + 1;
-          }
-        }
-      } else {
-        if (allUserAnsweredQuestions[
-                allUserAnsweredQuestions.keys.toList()[i]] ==
-            true) {
-          finalMap['correct'] = finalMap['correct']! + 1;
-        } else {
-          finalMap['incorrect'] = finalMap['incorrect']! + 1;
-        }
+    var answeredQuestions =
+        await getCollectionDataField('users', 'ID', _auth.currentUser!.uid);
+    return answeredQuestions['answeredQuestions'];
+  }
+
+  Future<Map> getTotalAnswerCorrectness() async {
+    var data = await getCompAnswerCorrectness();
+    num correct = 0;
+    num incorrect = 0;
+    for (var i = 0; i < data.length; i++) {
+      if (data[data.keys.toList()[i]]['correct'] != null) {
+        correct += data[data.keys.toList()[i]]['correct'];
+      }
+      if (data[data.keys.toList()[i]]['incorrect'] != null) {
+        incorrect += data[data.keys.toList()[i]]['incorrect'];
       }
     }
-
+    var finalMap = {};
+    finalMap['correct'] = correct;
+    finalMap['incorrect'] = incorrect;
     return finalMap;
   }
 
@@ -413,18 +391,38 @@ class DB {
 
   /// Returns all users IDs sorted by exp descending
   getGlobalRanking() async {
-    List allUsers = await getCollectionData('users', 'ID');
-    Map allUsersExpMap = {};
-    for (var user in allUsers) {
-      allUsersExpMap[user] = await getUserTotalExp(user);
-    }
-    allUsersExpMap = Map.fromEntries(allUsersExpMap.entries.toList()
-      ..sort((e2, e1) => e1.value.compareTo(e2.value)));
-    return allUsersExpMap;
+    // List allUsers = await getCollectionData('users', 'ID');
+    // Map allUsersExpMap = {};
+    // for (var user in allUsers) {
+    //   allUsersExpMap[user] = await getUserTotalExp(user);
+    // }
+    // allUsersExpMap = Map.fromEntries(allUsersExpMap.entries.toList()
+    //   ..sort((e2, e1) => e1.value.compareTo(e2.value)));
+    // return allUsersExpMap;
+    var allUserExpMap = {};
+    await firestoreInstance
+        .collection('users')
+        .orderBy("exp", descending: true)
+        .get()
+        .then((querySnapshot) {
+      for (var result in querySnapshot.docs) {
+        allUserExpMap[result.data()['ID']] = result.data()['exp'];
+      }
+    });
   }
 
   /// Returns short version of global ranking - only 'adjacentNum' positions below and above given userID
   getShortGlobalRanking([String? userID, int adjacentNum = 1]) async {
+    // await firestoreInstance
+    //     .collection('users')
+    //     .orderBy("exp", descending: false)
+    //     .get()
+    //     .then((querySnapshot) {
+    //   for (var result in querySnapshot.docs) {
+    //     print(result.data());
+    //   }
+    // });
+
     String ID = userID ?? _auth.currentUser!.uid;
 
     var globalRanking = await getGlobalRanking();
