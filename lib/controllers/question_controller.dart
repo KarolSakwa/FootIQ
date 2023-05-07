@@ -18,11 +18,27 @@ class QuestionController {
 
   /// Returns a full question set
   Future<List<Question>> getQuestionSet() async {
+    int questionSetSize = 5;
     List<Question> questionList = [];
-    for (var i = 0; i < 5; i++) {
-      questionList.add(
-          await apiController.getQuestion(2)); // TODO: ZMIENIĆ NA DYNAMICZNE
+    var i = 0;
+    while (questionList.length < questionSetSize) {
+      var question;
+      while (question == null) {
+        try {
+          question = await apiController.getQuestion(i);
+        } catch (e) {
+          print('Failed to get question $i: $e');
+          question = null;
+        }
+        i++;
+      }
+      questionList.add(question);
     }
+
+    if (questionList.length < questionSetSize) {
+      print('ERROR! Set not build properly!');
+    }
+
     return questionList;
   }
 

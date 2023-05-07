@@ -15,7 +15,7 @@ import 'package:material_dialogs/widgets/buttons/icon_button.dart';
 
 QuestionController questionController = QuestionController();
 
-int maxQuestionNum = 5;
+int maxQuestionNum = 4;
 List<Question> answeredQuestionList = [];
 const maxSeconds = 15;
 final db = DB();
@@ -26,13 +26,18 @@ final _auth = FirebaseAuth.instance;
 
 class QuestionCard extends StatefulWidget {
   String challengeID;
-  Question? currentQuestion;
+
+  //Question? currentQuestion;
   QuestionCard(String this.challengeID, {Key? key}) : super(key: key);
+
   @override
   State<QuestionCard> createState() => _QuestionCardState();
 }
 
 class _QuestionCardState extends State<QuestionCard> {
+  late Question? currentQuestion;
+  late List<Question> questionList;
+  bool isLoading = true;
   ButtonStyle initialButtonStyle = ButtonStyle(
     foregroundColor: MaterialStateProperty.all<Color>(kMainLightColor),
     backgroundColor: MaterialStateProperty.all<Color>(kMainMediumColor),
@@ -45,9 +50,18 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   void initState() {
+    loadQuestion();
     questionController.questionNum = 0;
     scoreKeeper = [];
     super.initState();
+  }
+
+  void loadQuestion() async {
+    questionList = await questionController.getQuestionSet();
+    currentQuestion = questionList.first;
+    setState(() {
+      isLoading = false;
+    });
   }
 
   void updateState(answerText, currentQuestion) {
@@ -82,15 +96,15 @@ class _QuestionCardState extends State<QuestionCard> {
   void timesUpActions() {
     isOnCompleteCounterInvoked = false;
     db.appendMapValue('challenges', widget.challengeID, 'questions',
-        widget.currentQuestion!.getID().toString(), false);
+        currentQuestion!.getID().toString(), false);
     scoreKeeper.add(Icon(
       Icons.close,
       color: Colors.red,
     ));
     questionController.questionNum++;
     Dialogs.materialDialog(
-      onClose:
-          closeAlert, // for some reason barrierDismissible option not working here, so I have to work it around the other way
+      onClose: closeAlert,
+      // for some reason barrierDismissible option not working here, so I have to work it around the other way
       color: Colors.white,
       title: 'Time\'s up!',
       lottieBuilder: Lottie.asset(
@@ -122,8 +136,8 @@ class _QuestionCardState extends State<QuestionCard> {
       color: Colors.green,
     ));
     Dialogs.materialDialog(
-      onClose:
-          closeAlert, // for some reason barrierDismissible option not working here, so I have to work it around the other way
+      onClose: closeAlert,
+      // for some reason barrierDismissible option not working here, so I have to work it around the other way
       color: Colors.white,
       title: 'Correct!',
       lottieBuilder: Lottie.asset(
@@ -155,8 +169,8 @@ class _QuestionCardState extends State<QuestionCard> {
       color: Colors.red,
     ));
     Dialogs.materialDialog(
-      onClose:
-          closeAlert, // for some reason barrierDismissible option not working here, so I have to work it around the other way
+      onClose: closeAlert,
+      // for some reason barrierDismissible option not working here, so I have to work it around the other way
       color: Colors.white,
       title: 'Incorrect!',
       lottieBuilder: Lottie.asset(
@@ -182,164 +196,150 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   Widget build(BuildContext context) {
-    questionController.getAllUserAnsweredQuestions();
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: FutureBuilder<Question>(
-        future: questionController.getRandomQuestion(),
-        builder: (BuildContext context, AsyncSnapshot<Question> result) {
-          if (result.hasData &&
-              questionController.questionNum <= maxQuestionNum) {
-            widget.currentQuestion = result.data!;
-            return SizedBox(
+    //questionController.getAllUserAnsweredQuestions();
+    return isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : WillPopScope(
+            onWillPop: () async => false,
+            child: SizedBox(
               height: MediaQuery.of(context).size.height * 0.7,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  buildTimer(),
-                  Row(
-                    children: scoreKeeper,
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      QuestionCardImage(question: result.data!),
-                      QuestionCardText(question: result.data!)
-                    ],
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 5,
-                            child: Container(
-                              height: MediaQuery.of(context).size.height * 0.1,
-                              child: TextButton(
-                                onPressed: () {
-                                  updateState(
-                                      result.data!.getAnswerA(), result.data!);
-                                },
-                                style: result.data!.getUserAnswer() ==
-                                        result.data!.getAnswerA()
-                                    ? selectedButtonStyle
-                                    : initialButtonStyle,
-                                child: Text(
-                                  result.data!.getAnswerA(),
-                                  style: TextStyle(
-                                    fontFamily: 'Lato',
-                                    fontSize:
-                                        getFontSize(result.data!.getAnswerA()),
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    buildTimer(),
+                    Row(
+                      children: scoreKeeper,
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        QuestionCardImage(question: currentQuestion!),
+                        QuestionCardText(question: currentQuestion!)
+                      ],
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 5,
+                              child: Container(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.1,
+                                child: TextButton(
+                                  onPressed: () {
+                                    updateState(currentQuestion!.getAnswerA(),
+                                        currentQuestion!);
+                                  },
+                                  style: currentQuestion!.getUserAnswer() ==
+                                          currentQuestion!.getAnswerA()
+                                      ? selectedButtonStyle
+                                      : initialButtonStyle,
+                                  child: Text(
+                                    currentQuestion!.getAnswerA(),
+                                    style: TextStyle(
+                                      fontFamily: 'Lato',
+                                      fontSize: getFontSize(
+                                          currentQuestion!.getAnswerA()),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Expanded(
-                            flex: 5,
-                            child: Container(
-                              height: MediaQuery.of(context).size.height * 0.1,
-                              child: TextButton(
-                                onPressed: () {
-                                  updateState(
-                                      result.data!.getAnswerB(), result.data!);
-                                },
-                                style: result.data!.getUserAnswer() ==
-                                        result.data!.getAnswerB()
-                                    ? selectedButtonStyle
-                                    : initialButtonStyle,
-                                child: Text(
-                                  result.data!.getAnswerB(),
-                                  style: TextStyle(
-                                    fontFamily: 'Lato',
-                                    fontSize:
-                                        getFontSize(result.data!.getAnswerB()),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Expanded(
+                              flex: 5,
+                              child: Container(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.1,
+                                child: TextButton(
+                                  onPressed: () {
+                                    updateState(currentQuestion!.getAnswerB(),
+                                        currentQuestion!);
+                                  },
+                                  style: currentQuestion!.getUserAnswer() ==
+                                          currentQuestion!.getAnswerB()
+                                      ? selectedButtonStyle
+                                      : initialButtonStyle,
+                                  child: Text(
+                                    currentQuestion!.getAnswerB(),
+                                    style: TextStyle(
+                                      fontFamily: 'Lato',
+                                      fontSize: getFontSize(
+                                          currentQuestion!.getAnswerB()),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      Padding(padding: EdgeInsets.only(top: 10)),
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 5,
-                            child: Container(
-                              height: MediaQuery.of(context).size.height * 0.1,
-                              child: TextButton(
-                                onPressed: () {
-                                  updateState(
-                                      result.data!.getAnswerC(), result.data!);
-                                },
-                                style: result.data!.getUserAnswer() ==
-                                        result.data!.getAnswerC()
-                                    ? selectedButtonStyle
-                                    : initialButtonStyle,
-                                child: Text(
-                                  result.data!.getAnswerC(),
-                                  style: TextStyle(
-                                    fontFamily: 'Lato',
-                                    fontSize:
-                                        getFontSize(result.data!.getAnswerC()),
+                          ],
+                        ),
+                        Padding(padding: EdgeInsets.only(top: 10)),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 5,
+                              child: Container(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.1,
+                                child: TextButton(
+                                  onPressed: () {
+                                    updateState(currentQuestion!.getAnswerC(),
+                                        currentQuestion!);
+                                  },
+                                  style: currentQuestion!.getUserAnswer() ==
+                                          currentQuestion!.getAnswerC()
+                                      ? selectedButtonStyle
+                                      : initialButtonStyle,
+                                  child: Text(
+                                    currentQuestion!.getAnswerC(),
+                                    style: TextStyle(
+                                      fontFamily: 'Lato',
+                                      fontSize: getFontSize(
+                                          currentQuestion!.getAnswerC()),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Expanded(
-                            flex: 5,
-                            child: Container(
-                              height: MediaQuery.of(context).size.height * 0.1,
-                              child: TextButton(
-                                onPressed: () {
-                                  updateState(
-                                      result.data!.getAnswerD(), result.data!);
-                                },
-                                style: result.data!.getUserAnswer() ==
-                                        result.data!.getAnswerD()
-                                    ? selectedButtonStyle
-                                    : initialButtonStyle,
-                                child: Text(
-                                  result.data!.getAnswerD(),
-                                  style: TextStyle(
-                                    fontFamily: 'Lato',
-                                    fontSize:
-                                        getFontSize(result.data!.getAnswerD()),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Expanded(
+                              flex: 5,
+                              child: Container(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.1,
+                                child: TextButton(
+                                  onPressed: () {
+                                    updateState(currentQuestion!.getAnswerD(),
+                                        currentQuestion!);
+                                  },
+                                  style: currentQuestion!.getUserAnswer() ==
+                                          currentQuestion!.getAnswerD()
+                                      ? selectedButtonStyle
+                                      : initialButtonStyle,
+                                  child: Text(
+                                    currentQuestion!.getAnswerD(),
+                                    style: TextStyle(
+                                      fontFamily: 'Lato',
+                                      fontSize: getFontSize(
+                                          currentQuestion!.getAnswerD()),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ],
-              ),
-            );
-          } else {
-            return Center(
-                child: SizedBox(
-              width: 70,
-              height: 70,
-              child: CircularProgressIndicator(
-                color: kMainLightColor,
-                strokeWidth: 5,
-              ),
-            ));
-          }
-        },
-      ),
-    );
+                          ],
+                        )
+                      ],
+                    ),
+                  ]),
+            ),
+          );
   }
 
   Widget buildTimer() {
@@ -384,6 +384,8 @@ class _QuestionCardState extends State<QuestionCard> {
               builder: (context) => ScoreScreen(widget.challengeID),
             ));
         //Navigator.pushNamed(context, ScoreScreen.id);
+      } else {
+        currentQuestion = questionList[questionController.questionNum];
       }
     });
     if (questionController.questionNum > maxQuestionNum) {
