@@ -16,11 +16,11 @@ class ProfileSideNav extends StatelessWidget {
         children: <Widget>[
           DrawerHeader(
             child: Text(
-              'Side menu',
+              'Menu',
               style: TextStyle(color: kMainLightColor, fontSize: 25),
             ),
             decoration: BoxDecoration(
-                color: kMainMediumColor,
+                color: kMainGreyColor,
                 image: DecorationImage(
                     fit: BoxFit.fill,
                     image: AssetImage('assets/images/cover.jpg'))),
@@ -34,8 +34,16 @@ class ProfileSideNav extends StatelessWidget {
             leading: Icon(Icons.exit_to_app),
             title: Text('Logout'),
             onTap: () {
-              _auth.signOut();
-              Navigator.pushNamed(context, WelcomeScreen.id);
+              try {
+                _auth.signOut();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => WelcomeScreen()),
+                  (route) => false,
+                );
+              } catch (e) {
+                print('Error during logging out: $e');
+              }
             },
           ),
         ],

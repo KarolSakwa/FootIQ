@@ -3,7 +3,7 @@ import 'package:footix/contants.dart';
 import 'package:pie_chart/pie_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../../models/database.dart';
+import '../../../models/firebase_service.dart';
 
 class UserAnswerCorrectnessPieChart extends StatelessWidget {
   int? correctAnswers;
@@ -20,7 +20,6 @@ class UserAnswerCorrectnessPieChart extends StatelessWidget {
   Widget build(BuildContext context) {
     correctAnswers ??= 0;
     incorrectAnswers ??= 0;
-
     var answerCorrectnessPercentage =
         correctAnswers != 0 || incorrectAnswers != 0
             ? ((correctAnswers! / (correctAnswers! + incorrectAnswers!)) * 100)

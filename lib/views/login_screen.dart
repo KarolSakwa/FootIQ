@@ -22,6 +22,9 @@ class _LoginScreenState extends State<LoginScreen> {
   String email = '';
   String password = '';
 
+  bool isEmailValid = true;
+  bool isPasswordValid = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,62 +40,67 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.only(top: 50.0),
               child: Center(
                 child: Container(
-                    /*decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(50.0)),*/
-                    child: kWelcomeScreenTitleText),
+                  child: kWelcomeScreenTitleText,
+                ),
               ),
             ),
-            const SizedBox(
+            SizedBox(
               height: 50,
             ),
             Padding(
-              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
               padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 style: TextStyle(color: kMainLightColor),
                 cursorColor: kMainLightColor,
-                decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      // width: 0.0 produces a thin "hairline" border
-                      borderSide: BorderSide(color: kMainLightColor, width: 1),
-                    ),
-                    hintStyle: TextStyle(color: kMainLightColor),
-                    border: OutlineInputBorder(),
-                    labelText: 'Email',
-                    labelStyle: TextStyle(color: kMainLightColor),
-                    hintText: 'Enter valid email, e.g. abc@mail.com'),
+                decoration: InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kMainLightColor, width: 1),
+                  ),
+                  hintStyle: TextStyle(color: kMainLightColor),
+                  border: OutlineInputBorder(),
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: kMainLightColor),
+                  hintText: 'Enter valid email, e.g. abc@mail.com',
+                  errorText: isEmailValid ? null : 'Enter a valid email',
+                ),
                 onChanged: (value) {
-                  email = value;
+                  setState(() {
+                    email = value;
+                    isEmailValid = true;
+                  });
                 },
               ),
             ),
             Padding(
               padding: const EdgeInsets.only(
                   left: 15.0, right: 15.0, top: 15, bottom: 0),
-              //padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextFormField(
                 obscureText: true,
                 style: TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      // width: 0.0 produces a thin "hairline" border
-                      borderSide: BorderSide(color: kMainLightColor, width: 1),
-                    ),
-                    hintStyle: TextStyle(color: kMainLightColor),
-                    border: OutlineInputBorder(),
-                    labelText: 'Password',
-                    labelStyle: TextStyle(color: kMainLightColor),
-                    hintText: 'Enter secure password'),
+                decoration: InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kMainLightColor, width: 1),
+                  ),
+                  hintStyle: TextStyle(color: kMainLightColor),
+                  border: OutlineInputBorder(),
+                  labelText: 'Password',
+                  labelStyle: TextStyle(color: kMainLightColor),
+                  hintText: 'Enter secure password',
+                  errorText: isPasswordValid ? null : 'Password is too short',
+                ),
                 onChanged: (value) {
-                  password = value;
+                  setState(() {
+                    password = value;
+                    isPasswordValid = true;
+                  });
                 },
               ),
             ),
             TextButton(
-                onPressed: () =>
-                    Navigator.pushNamed(context, ForgotPasswordScreen.id),
-                child: Text('Forgot Password')),
+              onPressed: () =>
+                  Navigator.pushNamed(context, ForgotPasswordScreen.id),
+              child: Text('Forgot Password'),
+            ),
             TextButton(
               style: ButtonStyle(
                 backgroundColor:
@@ -113,20 +121,32 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               onPressed: () async {
-                try {
-                  final user = await _auth.signInWithEmailAndPassword(
-                      email: email, password: password);
-                  if (!mounted) return;
-                  Navigator.pushNamed(context, ProfileScreen.id);
-                } catch (e) {
-                  print(e);
+                if (email.isEmpty || !isEmailValid) {
+                  setState(() {
+                    isEmailValid = false;
+                  });
+                } else if (password.length < 6) {
+                  setState(() {
+                    isPasswordValid = false;
+                  });
+                } else {
+                  try {
+                    final user = await _auth.signInWithEmailAndPassword(
+                      email: email,
+                      password: password,
+                    );
+                    if (!mounted) return;
+                    Navigator.pushNamed(context, ProfileScreen.id);
+                  } catch (e) {
+                    print(e);
+                  }
                 }
               },
             ),
-            const SizedBox(
+            SizedBox(
               height: 130,
             ),
-            const Text('New User? Create Account')
+            Text('New User? Create Account'),
           ],
         ),
       ),

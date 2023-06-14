@@ -1,18 +1,26 @@
 import 'package:footix/controllers/api_controller.dart';
 import 'package:footix/models/question.dart';
-import '../models/database.dart';
-import 'dart:math';
+import '../models/firebase_service.dart';
+import 'data_cache_controller.dart';
 
 class QuestionController {
   int questionNum = 0; // question counter
   int questionListLength = 50;
-  final db = DB();
+  final firebaseService = FirebaseService();
   APIController apiController = APIController();
+  DataCacheController dataCacheController = DataCacheController();
 
   /// Returns a random question
   Future<Question> getRandomQuestion() async {
-    var question =
-        await apiController.getQuestion(2); // TODO: ZMIENIĆ NA DYNAMICZNE
+    Question? question = await dataCacheController.getQuestionData(questionNum);
+    if (question != null) {
+      return question;
+    }
+
+    question = await apiController.getQuestion(questionNum);
+
+    await dataCacheController.cacheQuestionData(question!);
+
     return question;
   }
 
@@ -20,30 +28,56 @@ class QuestionController {
   Future<List<Question>> getQuestionSet() async {
     int questionSetSize = 5;
     List<Question> questionList = [];
-    var i = 0;
-    while (questionList.length < questionSetSize) {
-      var question;
-      while (question == null) {
-        try {
-          question = await apiController.getQuestion(i);
-        } catch (e) {
-          print('Failed to get question $i: $e');
-          question = null;
-        }
-        i++;
-      }
-      questionList.add(question);
-    }
 
-    if (questionList.length < questionSetSize) {
-      print('ERROR! Set not build properly!');
+    int currentIndex = 0;
+    int unsuccessfulAttempts = 0;
+    int maxAttempts = 100;
+
+    while (questionList.length < questionSetSize) {
+      var question = await dataCacheController.getQuestionData(currentIndex);
+      if (question != null) {
+        questionList.add(question);
+        unsuccessfulAttempts = 0; // Reset the counter
+      } else {
+        question = await apiController.getQuestion(currentIndex);
+        if (question != null) {
+          await dataCacheController.cacheQuestionData(question);
+          questionList.add(question);
+          unsuccessfulAttempts = 0; // Reset the counter
+        } else {
+          unsuccessfulAttempts++;
+          print(
+              'Unsuccessful attempt $unsuccessfulAttempts to retrieve question $currentIndex');
+          if (unsuccessfulAttempts >= maxAttempts) {
+            print('Reached the maximum number of unsuccessful attempts');
+            break; // Exit the loop
+          }
+        }
+      }
+      currentIndex++;
     }
 
     return questionList;
   }
 
+  /// Retrieves a question by ID
+  Future<Question?> getQuestion(int id) async {
+    Question? question = await dataCacheController.getQuestionData(id);
+    if (question != null) {
+      return question;
+    }
+
+    question = await apiController.getQuestion(id);
+
+    if (question != null) {
+      await dataCacheController.cacheQuestionData(question);
+    }
+
+    return question;
+  }
+
   getAllUserAnsweredQuestions() async {
-    var test = await db.getCollectionDataField(
+    var test = await firebaseService.getCollectionDataField(
         'challenges', 'user', '1r6NTNyxoffkZTHqP7FGUcdP2eC2', true);
     var allAnsweredQuestionsMap = {};
     for (var i = 0; i < test.length; i++) {

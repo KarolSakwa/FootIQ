@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:footix/contants.dart';
+import 'package:footix/controllers/data_cache_controller.dart';
 import 'package:footix/views/components/profile_side_nav.dart';
 import 'package:footix/views/dashboard/components/answer_correctness.dart';
 import 'package:footix/views/dashboard/global_ranking_screen.dart';
@@ -9,11 +11,11 @@ import 'components/user_skills_radar.dart';
 import 'components/dashboard_card.dart';
 import 'components/footer.dart';
 import 'components/global_ranking.dart';
-import 'package:footix/models/database.dart';
+import 'package:footix/models/firebase_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const String id = 'profile_screen';
-  final DB db = DB();
+  final FirebaseService firebaseService = FirebaseService();
 
   ProfileScreen({Key? key}) : super(key: key);
 
@@ -24,7 +26,8 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
-    //FirebaseAuth.instance.signOut();
+    // final cacheManager = DefaultCacheManager();
+    // cacheManager.emptyCache();
     final _auth = FirebaseAuth.instance;
     User? loggedInUser = _auth.currentUser;
     // Map otherUser = ModalRoute.of(context)!.settings.arguments

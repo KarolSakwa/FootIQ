@@ -2,13 +2,18 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:footix/controllers/api_controller.dart';
+import 'package:footix/controllers/question_controller.dart';
+import 'package:footix/repository/answered_questions_repository.dart';
+import 'package:footix/views/components/question_card.dart';
 import 'package:uuid/uuid.dart';
 import 'package:footix/contants.dart';
 import 'dart:math';
 
-class DB {
+class FirebaseService {
   final firestoreInstance = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
+  APIController apiController = APIController();
 
   /// Returns list of items in given collection
   Future<dynamic> getCollectionData(String collection,
@@ -118,6 +123,46 @@ class DB {
     }
     var finalMap = {mapName: currentMap};
     firestoreInstance.collection(collection).doc(document).update(finalMap);
+  }
+
+  Future<void> appendToCorrectArray(String userId, String value) async {
+    final userDocRef = firestoreInstance.collection('users').doc(userId);
+
+    await firestoreInstance.runTransaction((transaction) async {
+      final userSnapshot = await transaction.get(userDocRef);
+      final answeredQuestions = userSnapshot.data()?['answeredQuestions'];
+
+      List<String> updatedCorrectArray;
+
+      if (answeredQuestions != null && answeredQuestions['correct'] != null) {
+        updatedCorrectArray = [...answeredQuestions['correct'], value];
+      } else {
+        updatedCorrectArray = [value];
+      }
+
+      transaction.update(
+          userDocRef, {'answeredQuestions.correct': updatedCorrectArray});
+    });
+  }
+
+  Future<void> appendToIncorrectArray(String userId, String value) async {
+    final userDocRef = firestoreInstance.collection('users').doc(userId);
+
+    await firestoreInstance.runTransaction((transaction) async {
+      final userSnapshot = await transaction.get(userDocRef);
+      final answeredQuestions = userSnapshot.data()?['answeredQuestions'];
+
+      List<String> updatedIncorrectArray;
+
+      if (answeredQuestions != null && answeredQuestions['incorrect'] != null) {
+        updatedIncorrectArray = [...answeredQuestions['incorrect'], value];
+      } else {
+        updatedIncorrectArray = [value];
+      }
+
+      transaction.update(
+          userDocRef, {'answeredQuestions.incorrect': updatedIncorrectArray});
+    });
   }
 
 // updates existing field
@@ -250,22 +295,77 @@ class DB {
     }
   }
 
-  /// Returns all questions answered by user with given ID or by logged in user if no arguments given
   getUserAnsweredQuestions([String? userID]) async {
-    String ID = userID ?? _auth.currentUser!.uid;
-    var allUserAnsweredChallenges =
-        await getDocumentIDWhereFieldEquals('challenges', 'user', ID, true);
-    var allUserAnsweredQuestions = [];
-    for (var i = 0; i < allUserAnsweredChallenges.length; i++) {
-      var currentQuestions = await getFieldData(
-          'challenges', allUserAnsweredChallenges[i], 'questions');
-      allUserAnsweredQuestions.add(currentQuestions);
+    final DocumentSnapshot documentSnapshot =
+        await firestoreInstance.collection("users").doc(userID).get();
+    var answeredQuestions = documentSnapshot.get("answeredQuestions");
+    return answeredQuestions;
+  }
+
+  getUserAnsweredQuestionsTotalExp(String userID) async {
+    var questionController = QuestionController();
+    var answeredQuestions = await getUserAnsweredQuestions(userID);
+    double totalExp = 0;
+    for (var questionID in answeredQuestions.keys) {
+      var question = await questionController.getQuestion(questionID);
+      if (question!.getQuestionDifficulty() != null &&
+          answeredQuestions[questionID]["correct"] != null) {
+        totalExp += (question.getQuestionDifficulty() *
+                answeredQuestions[questionID]["correct"])
+            .toDouble();
+      }
     }
-    Map finalMap = {};
-    for (var i = 0; i < allUserAnsweredQuestions.length; i++) {
-      finalMap.addAll(allUserAnsweredQuestions[i]);
+    return totalExp;
+  }
+
+  Future<List<Map<String, dynamic>>> getGlobalRanking() async {
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('users').get();
+
+    List<Map<String, dynamic>> ranking = [];
+
+    for (DocumentSnapshot documentSnapshot in querySnapshot.docs) {
+      String userId = documentSnapshot.id;
+      var userExp = await getUserAnsweredQuestionsTotalExp(userId);
+      ranking.add({userId: userExp});
     }
-    return finalMap;
+
+    ranking
+        .sort((a, b) => (b.values.first as double).compareTo(a.values.first));
+    return ranking;
+  }
+
+  Future<List<Map<String, dynamic>>> getUserRanking(String userId) async {
+    AnsweredQuestionsRepository answeredQuestionsRepository =
+        AnsweredQuestionsRepository();
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('users').get();
+    List<Map<String, dynamic>> ranking = [];
+
+    for (DocumentSnapshot documentSnapshot in querySnapshot.docs) {
+      String currUserId = documentSnapshot.id;
+      var userExp =
+          await answeredQuestionsRepository.getUserGainedExpTotal(currUserId);
+      ranking.add({
+        currUserId: {'exp': userExp}
+      });
+    }
+
+    ranking.sort((a, b) => (b.values.first['exp'] as double)
+        .compareTo(a.values.first['exp'] as double));
+
+    int userPosition =
+        ranking.indexWhere((element) => element.keys.first == userId);
+
+    int start = userPosition - 2 >= 0 ? userPosition - 2 : 0;
+    int end = userPosition + 2 < ranking.length
+        ? userPosition + 2
+        : ranking.length - 1;
+
+    for (int i = start; i <= end; i++) {
+      ranking[i][ranking[i].keys.first]['position'] = (i + 1).toDouble();
+    }
+    return ranking;
   }
 
   /// Retrieving all user's questions
@@ -390,62 +490,62 @@ class DB {
   }
 
   /// Returns all users IDs sorted by exp descending
-  getGlobalRanking() async {
-    // List allUsers = await getCollectionData('users', 'ID');
-    // Map allUsersExpMap = {};
-    // for (var user in allUsers) {
-    //   allUsersExpMap[user] = await getUserTotalExp(user);
-    // }
-    // allUsersExpMap = Map.fromEntries(allUsersExpMap.entries.toList()
-    //   ..sort((e2, e1) => e1.value.compareTo(e2.value)));
-    // return allUsersExpMap;
-    var allUserExpMap = {};
-    await firestoreInstance
-        .collection('users')
-        .orderBy("exp", descending: true)
-        .get()
-        .then((querySnapshot) {
-      for (var result in querySnapshot.docs) {
-        allUserExpMap[result.data()['ID']] = result.data()['exp'];
-      }
-    });
-  }
+  // getGlobalRanking() async {
+  //   // List allUsers = await getCollectionData('users', 'ID');
+  //   // Map allUsersExpMap = {};
+  //   // for (var user in allUsers) {
+  //   //   allUsersExpMap[user] = await getUserTotalExp(user);
+  //   // }
+  //   // allUsersExpMap = Map.fromEntries(allUsersExpMap.entries.toList()
+  //   //   ..sort((e2, e1) => e1.value.compareTo(e2.value)));
+  //   // return allUsersExpMap;
+  //   var allUserExpMap = {};
+  //   await firestoreInstance
+  //       .collection('users')
+  //       .orderBy("exp", descending: true)
+  //       .get()
+  //       .then((querySnapshot) {
+  //     for (var result in querySnapshot.docs) {
+  //       allUserExpMap[result.data()['ID']] = result.data()['exp'];
+  //     }
+  //   });
+  // }
 
   /// Returns short version of global ranking - only 'adjacentNum' positions below and above given userID
-  getShortGlobalRanking([String? userID, int adjacentNum = 1]) async {
-    // await firestoreInstance
-    //     .collection('users')
-    //     .orderBy("exp", descending: false)
-    //     .get()
-    //     .then((querySnapshot) {
-    //   for (var result in querySnapshot.docs) {
-    //     print(result.data());
-    //   }
-    // });
-
-    String ID = userID ?? _auth.currentUser!.uid;
-
-    var globalRanking = await getGlobalRanking();
-    int userRanking = globalRanking.keys.toList().indexOf(ID);
-    int upperLimit =
-        userRanking - adjacentNum < 1 ? 0 : userRanking - adjacentNum;
-    int lowerLimit = userRanking + adjacentNum >= globalRanking.length
-        ? globalRanking.length - 1
-        : userRanking + adjacentNum;
-    // filling the gap
-    if (userRanking <= adjacentNum) lowerLimit = lowerLimit + adjacentNum;
-    //
-    var globalRankingShort = Map.fromIterables(
-        globalRanking.keys.skip(upperLimit).take(lowerLimit + 1),
-        globalRanking.values.skip(upperLimit).take(lowerLimit + 1));
-    var finalMap = {};
-    int counter = 0;
-    for (var key in globalRankingShort.keys.toList()) {
-      finalMap[key] = {};
-      finalMap[key]['exp'] = globalRankingShort[key];
-      finalMap[key]['ranking'] = (userRanking + 1) + counter;
-      counter++;
-    }
-    return finalMap;
-  }
+  // getShortGlobalRanking([String? userID, int adjacentNum = 1]) async {
+  //   // await firestoreInstance
+  //   //     .collection('users')
+  //   //     .orderBy("exp", descending: false)
+  //   //     .get()
+  //   //     .then((querySnapshot) {
+  //   //   for (var result in querySnapshot.docs) {
+  //   //     print(result.data());
+  //   //   }
+  //   // });
+  //
+  //   String ID = userID ?? _auth.currentUser!.uid;
+  //
+  //   var globalRanking = await getGlobalRanking();
+  //   int userRanking = globalRanking.keys.toList().indexOf(ID);
+  //   int upperLimit =
+  //       userRanking - adjacentNum < 1 ? 0 : userRanking - adjacentNum;
+  //   int lowerLimit = userRanking + adjacentNum >= globalRanking.length
+  //       ? globalRanking.length - 1
+  //       : userRanking + adjacentNum;
+  //   // filling the gap
+  //   if (userRanking <= adjacentNum) lowerLimit = lowerLimit + adjacentNum;
+  //   //
+  //   var globalRankingShort = Map.fromIterables(
+  //       globalRanking.keys.skip(upperLimit).take(lowerLimit + 1),
+  //       globalRanking.values.skip(upperLimit).take(lowerLimit + 1));
+  //   var finalMap = {};
+  //   int counter = 0;
+  //   for (var key in globalRankingShort.keys.toList()) {
+  //     finalMap[key] = {};
+  //     finalMap[key]['exp'] = globalRankingShort[key];
+  //     finalMap[key]['ranking'] = (userRanking + 1) + counter;
+  //     counter++;
+  //   }
+  //   return finalMap;
+  // }
 }

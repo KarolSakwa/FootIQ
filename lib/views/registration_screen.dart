@@ -5,18 +5,19 @@ import 'package:footix/contants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:footix/views/dashboard/profile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:footix/models/database.dart';
+import 'package:footix/models/firebase_service.dart';
 import 'package:country_picker/country_picker.dart';
 
 import 'login_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
-  final DB db = DB();
+  final FirebaseService firebaseService = FirebaseService();
   static const String id = 'registration_screen';
   String nationality = 'Nationality';
   final firestoreInstance = FirebaseFirestore.instance;
 
   RegistrationScreen({Key? key}) : super(key: key);
+
   @override
   _RegistrationScreenState createState() => _RegistrationScreenState();
 }
@@ -36,6 +37,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String email = '';
   String username = '';
   String password = '';
+  String confirmPassword = '';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,59 +54,54 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               padding: const EdgeInsets.only(top: 20.0),
               child: Center(
                 child: Container(
-                    /*decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(50.0)),*/
-                    child: kWelcomeScreenTitleText),
+                  child: kWelcomeScreenTitleText,
+                ),
               ),
             ),
             const SizedBox(
               height: 20,
             ),
             Padding(
-              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
               padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
               child: TextField(
                 style: TextStyle(color: kMainLightColor),
                 cursorColor: kMainLightColor,
                 decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      // width: 0.0 produces a thin "hairline" border
-                      borderSide: BorderSide(color: kMainLightColor, width: 1),
-                    ),
-                    hintStyle: TextStyle(color: kMainLightColor),
-                    border: OutlineInputBorder(),
-                    labelText: 'Email',
-                    labelStyle: TextStyle(color: kMainLightColor),
-                    hintText: 'Enter valid email, e.g. abc@mail.com'),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kMainLightColor, width: 1),
+                  ),
+                  hintStyle: TextStyle(color: kMainLightColor),
+                  border: OutlineInputBorder(),
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: kMainLightColor),
+                  hintText: 'Enter valid email, e.g. abc@mail.com',
+                ),
                 onChanged: (value) {
                   email = value;
                 },
               ),
             ),
             Padding(
-              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
               padding: const EdgeInsets.only(bottom: 15, left: 15, right: 15),
               child: TextField(
                 style: const TextStyle(color: kMainLightColor),
                 cursorColor: kMainLightColor,
                 decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      // width: 0.0 produces a thin "hairline" border
-                      borderSide: BorderSide(color: kMainLightColor, width: 1),
-                    ),
-                    hintStyle: TextStyle(color: kMainLightColor),
-                    border: OutlineInputBorder(),
-                    labelText: 'Display name',
-                    labelStyle: TextStyle(color: kMainLightColor),
-                    hintText: 'Enter your public username'),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kMainLightColor, width: 1),
+                  ),
+                  hintStyle: TextStyle(color: kMainLightColor),
+                  border: OutlineInputBorder(),
+                  labelText: 'Display name',
+                  labelStyle: TextStyle(color: kMainLightColor),
+                  hintText: 'Enter your public username',
+                ),
                 onChanged: (value) {
                   username = value;
                 },
               ),
             ),
             Padding(
-              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Center(
                 child: ConstrainedBox(
@@ -118,14 +116,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             widget.nationality = country.name;
                           });
                         },
-                        // Optional. Sets the theme for the country list picker.
                         countryListTheme: CountryListThemeData(
-                          // Optional. Sets the border radius for the bottomsheet.
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(40.0),
                             topRight: Radius.circular(40.0),
                           ),
-                          // Optional. Styles the search field.
                           inputDecoration: InputDecoration(
                             labelText: 'Search',
                             hintText: 'Start typing to search',
@@ -153,36 +148,66 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ],
                     ),
                     style: ButtonStyle(
-                        side: MaterialStateProperty.all<BorderSide>(
-                            const BorderSide(
+                      side: MaterialStateProperty.all<BorderSide>(
+                        const BorderSide(
                           width: 1.0,
                           color: kMainLightColor,
-                        )),
-                        backgroundColor:
-                            MaterialStateProperty.all<Color>(kMainDarkColor)),
+                        ),
+                      ),
+                      backgroundColor:
+                          MaterialStateProperty.all<Color>(kMainDarkColor),
+                    ),
                   ),
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.only(
-                  left: 15.0, right: 15.0, top: 15, bottom: 0),
-              //padding: EdgeInsets.symmetric(horizontal: 15),
+                left: 15.0,
+                right: 15.0,
+                top: 15,
+                bottom: 0,
+              ),
               child: TextFormField(
                 obscureText: true,
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      // width: 0.0 produces a thin "hairline" border
-                      borderSide: BorderSide(color: kMainLightColor, width: 1),
-                    ),
-                    hintStyle: TextStyle(color: kMainLightColor),
-                    border: OutlineInputBorder(),
-                    labelText: 'Password',
-                    labelStyle: TextStyle(color: kMainLightColor),
-                    hintText: 'Enter secure password'),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kMainLightColor, width: 1),
+                  ),
+                  hintStyle: TextStyle(color: kMainLightColor),
+                  border: OutlineInputBorder(),
+                  labelText: 'Password',
+                  labelStyle: TextStyle(color: kMainLightColor),
+                  hintText: 'Enter secure password',
+                ),
                 onChanged: (value) {
                   password = value;
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 15.0,
+                right: 15.0,
+                top: 15,
+                bottom: 0,
+              ),
+              child: TextFormField(
+                obscureText: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kMainLightColor, width: 1),
+                  ),
+                  hintStyle: TextStyle(color: kMainLightColor),
+                  border: OutlineInputBorder(),
+                  labelText: 'Confirm password',
+                  labelStyle: TextStyle(color: kMainLightColor),
+                  hintText: 'Repeat password',
+                ),
+                onChanged: (value) {
+                  confirmPassword = value;
                 },
               ),
             ),
@@ -205,7 +230,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                    vertical: 18.0, horizontal: 105.0),
+                  vertical: 18.0,
+                  horizontal: 105.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
@@ -218,27 +245,35 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ),
               ),
               onPressed: () async {
-                var competitionsMaps =
-                    await widget.db.getCollectionData('competition');
-                Map<String, double> competitions = {};
-                for (var i = 0; i < competitionsMaps.length; i++) {
-                  competitions[competitionsMaps[i]['tm_code']] = 0;
+                if (password.length < 6) {
+                  showPasswordLengthError();
+                  return;
                 }
+
+                if (password != confirmPassword) {
+                  showPasswordMismatchError();
+                  return;
+                }
+
                 try {
                   final newUser = await _auth
                       .createUserWithEmailAndPassword(
-                          email: email, password: password)
-                      .then((value) => value.user!.updateDisplayName(username));
-                  widget.db.addData(
-                      'users',
-                      {
-                        'email': email,
-                        'name': username,
-                        'exp': competitions,
-                        'answeredQuestions': {},
-                        'ID': _auth.currentUser!.uid
-                      },
-                      id: _auth.currentUser!.uid);
+                        email: email,
+                        password: password,
+                      )
+                      .then(
+                        (value) => value.user!.updateDisplayName(username),
+                      );
+                  widget.firebaseService.addData(
+                    'users',
+                    {
+                      'email': email,
+                      'name': username,
+                      'answeredQuestions': {},
+                      'ID': _auth.currentUser!.uid,
+                    },
+                    id: _auth.currentUser!.uid,
+                  );
                   Navigator.pushNamed(context, ProfileScreen.id);
                 } catch (e) {
                   print(e);
@@ -246,6 +281,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void showPasswordLengthError() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: kMainLightColor,
+        content: Text(
+          'Password must be at least 6 characters long.',
+          style: kQuestionTextStyle,
+        ),
+      ),
+    );
+  }
+
+  void showPasswordMismatchError() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: kMainLightColor,
+        content: Text(
+          'Passwords do not match.',
+          style: kQuestionTextStyle,
         ),
       ),
     );

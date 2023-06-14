@@ -1,12 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:footix/repository/answered_questions_repository.dart';
 import 'package:footix/views/dashboard/components/user_answer_correctneess_pie_chart.dart';
 import 'package:footix/contants.dart';
 
-import '../../models/database.dart';
+import '../../models/firebase_service.dart';
 
 class AnswerCorrectnessScreen extends StatefulWidget {
   static const String id = 'answer_correctness_screen';
-  final db = DB();
+  final firebaseService = FirebaseService();
+  final answeredQuestionsRepository = AnsweredQuestionsRepository();
+  final _auth = FirebaseAuth.instance;
   AnswerCorrectnessScreen({Key? key}) : super(key: key);
 
   @override
@@ -15,10 +19,17 @@ class AnswerCorrectnessScreen extends StatefulWidget {
 }
 
 class _AnswerCorrectnessScreenState extends State<AnswerCorrectnessScreen> {
+  Widget buildNoDataWidget() {
+    return Center(
+      child: Text(
+        'No data available yet.',
+        style: TextStyle(fontSize: 16, color: Colors.grey),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    Map<String, int>? args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, int>?;
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -26,86 +37,82 @@ class _AnswerCorrectnessScreenState extends State<AnswerCorrectnessScreen> {
           backgroundColor: kMainDarkColor,
         ),
         body: FutureBuilder<List>(
-          future: Future.wait(
-              [competitionPieCharts2(), widget.db.getTotalAnswerCorrectness()]),
+          future: Future.wait([
+            widget.answeredQuestionsRepository
+                .getUserAnsweredQuestions(widget._auth.currentUser!.uid),
+            getCompetitionAnswerCorrectnessCharts()
+          ]),
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: const CircularProgressIndicator());
-            } else if (snapshot.connectionState == ConnectionState.done &&
-                snapshot.hasData) {
-              return Scaffold(
-                body: SafeArea(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: kMainDefaultPadding),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Answer correctness'.toUpperCase(),
-                            style: kWelcomeScreenTitleTextStyle.copyWith(
-                                fontSize: 25),
+            }
+            final correct = snapshot.data[0]['correct'] == null
+                ? 0
+                : snapshot.data[0]['correct'].length;
+            final incorrect = snapshot.data[0]['incorrect'] == null
+                ? 0
+                : snapshot.data[0]['incorrect'].length;
+            return snapshot.connectionState == ConnectionState.done &&
+                    snapshot.hasData &&
+                    snapshot.data[0].length > 0
+                ? Scaffold(
+                    body: SafeArea(
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: kMainDefaultPadding),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Answer correctness'.toUpperCase(),
+                                style: kWelcomeScreenTitleTextStyle.copyWith(
+                                    fontSize: 25),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: kMainDefaultPadding),
+                                child: Text(
+                                  'Total'.toUpperCase(),
+                                  style: kWelcomeScreenTitleTextStyle.copyWith(
+                                      fontSize: 18),
+                                ),
+                              ),
+                              UserAnswerCorrectnessPieChart(
+                                  correctAnswers: correct,
+                                  incorrectAnswers: incorrect),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: kMainDefaultPadding),
+                                child: Text(
+                                  'By competition'.toUpperCase(),
+                                  style: kWelcomeScreenTitleTextStyle.copyWith(
+                                      fontSize: 18),
+                                ),
+                              ),
+                              snapshot.data[1],
+                            ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: kMainDefaultPadding),
-                            child: Text(
-                              'Total'.toUpperCase(),
-                              style: kWelcomeScreenTitleTextStyle.copyWith(
-                                  fontSize: 18),
-                            ),
-                          ),
-                          UserAnswerCorrectnessPieChart(
-                              correctAnswers: snapshot.data[1]['correct'],
-                              incorrectAnswers: snapshot.data[1]['incorrect']),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: kMainDefaultPadding),
-                            child: Text(
-                              'By competition'.toUpperCase(),
-                              style: kWelcomeScreenTitleTextStyle.copyWith(
-                                  fontSize: 18),
-                            ),
-                          ),
-                          snapshot.data[0]
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              );
-            } else {
-              print('Cannot load data');
-              return Scaffold(
-                  body: Center(
-                    child: Text(kTooLittleData,
-                        style:
-                            kWelcomeScreenTitleTextStyle.copyWith(fontSize: 26),
-                        textAlign: TextAlign.center),
-                  ),
-                  backgroundColor: kMainDarkColor,
-                  appBar: AppBar(
-                    title: Text("Answer correctness"),
-                    backgroundColor: Color(0xFF0B1724FF),
-                  ));
-            }
+                  )
+                : buildNoDataWidget();
           },
         ),
       ),
     );
   }
 
-  Future<Widget> competitionPieCharts2() async {
-    var allCompsMapFull = await widget.db.getCompAnswerCorrectness();
-
+  Future<Widget> getCompetitionAnswerCorrectnessCharts() async {
+    var answeredQuestions = await widget.answeredQuestionsRepository
+        .getUserAnsweredQuestions(widget._auth.currentUser!.uid);
+    var answeredQuestionsPerCompetition = await widget
+        .answeredQuestionsRepository
+        .divideIntoCompetitions(answeredQuestions);
     List<Widget> widgetList = [];
-    for (var i = 0; i < allCompsMapFull.length; i++) {
-      var currentKey = allCompsMapFull.keys.toList()[i];
-      var currentValue = allCompsMapFull[allCompsMapFull.keys.toList()[i]];
-
-      var compData = await widget.db
-          .getCollectionDataField('competition', 'tm_code', currentKey);
-
+    for (var i = 0; i < answeredQuestionsPerCompetition.length; i++) {
+      var compData = answeredQuestionsPerCompetition[
+          answeredQuestionsPerCompetition.keys.toList()[i]];
       widgetList.add(Column(
         children: [
           Text(compData['name'],
@@ -114,8 +121,8 @@ class _AnswerCorrectnessScreenState extends State<AnswerCorrectnessScreen> {
             padding:
                 const EdgeInsets.symmetric(horizontal: kMainDefaultPadding),
             child: UserAnswerCorrectnessPieChart(
-                correctAnswers: currentValue['correct'],
-                incorrectAnswers: currentValue['incorrect']),
+                correctAnswers: compData['correct'].length,
+                incorrectAnswers: compData['incorrect'].length),
           ),
         ],
       ));

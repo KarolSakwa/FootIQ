@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
-import 'package:footix/models/database.dart';
+import 'package:footix/models/firebase_service.dart';
 import 'package:footix/models/question.dart';
 import 'package:footix/views/components/question_card.dart';
 import 'package:footix/views/dashboard/profile_screen.dart';
@@ -12,7 +12,7 @@ import 'dashboard/components/user_answer_correctneess_pie_chart.dart';
 
 class ScoreScreen extends StatefulWidget {
   final _auth = FirebaseAuth.instance;
-  final db = DB();
+  final firebaseService = FirebaseService();
   static const String id = 'score_screen';
   String challengeID = '';
 
@@ -37,7 +37,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
         widget._auth.currentUser == null ? MainScreen.id : ProfileScreen.id;
 
     return FutureBuilder(
-        future: widget.db
+        future: widget.firebaseService
             .getFieldData('challenges', widget.challengeID, 'questions'),
         builder: (BuildContext context, AsyncSnapshot result) {
           int correctAnswersNum = getCorrectAnswersNum(result.data);

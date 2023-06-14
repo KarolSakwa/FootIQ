@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
+import 'package:footix/views/add_question_screen.dart';
 import 'package:footix/views/admin_screen.dart';
 import 'package:footix/views/dashboard/answer_correctness_screen.dart';
 import 'package:footix/views/forgot_password_screen.dart';
@@ -47,6 +48,7 @@ class FootiIQ extends StatelessWidget {
           MainScreen.id: (context) => MainScreen(),
           WelcomeScreen.id: (context) => WelcomeScreen(),
           QuickChallengeScreen.id: (context) => QuickChallengeScreen(),
+          AddQuestionScreen.id: (context) => AddQuestionScreen(),
           ScoreScreen.id: (context) => ScoreScreen(''),
           LoginScreen.id: (context) => LoginScreen(),
           RegistrationScreen.id: (context) => RegistrationScreen(),

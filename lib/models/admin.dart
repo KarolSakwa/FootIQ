@@ -4,12 +4,12 @@ import 'package:web_scraper/web_scraper.dart';
 import "dart:math";
 
 import '../contants.dart';
-import 'database.dart';
+import 'firebase_service.dart';
 
 class Admin {
   final firestoreInstance = FirebaseFirestore.instance;
   final _random = new Random();
-  final db = DB();
+  final firebaseService = FirebaseService();
   var uuid = Uuid();
 
   // tm
@@ -23,7 +23,7 @@ class Admin {
     // retrieving competitions from db
     int firstSeason = 1992;
     int lastSeason = 2020;
-    var competitions = await db.getCollectionData('competition');
+    var competitions = await firebaseService.getCollectionData('competition');
     List<int> seasons = [];
     for (var i = firstSeason; i <= lastSeason; i++) {
       seasons.add(i);

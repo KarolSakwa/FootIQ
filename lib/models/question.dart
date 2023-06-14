@@ -72,4 +72,35 @@ class Question {
   void setUserAnswer(String userAnswer) {
     this.userAnswer = userAnswer;
   }
+
+  toJson() {
+    return {
+      'id': id,
+      'text': questionText,
+      'answerA': answerA,
+      'answerB': answerB,
+      'answerC': answerC,
+      'answerD': answerD,
+      'correctAnswer': correctAnswer,
+      'competition': competition.toJson(),
+      'difficulty': difficulty,
+      'year': year
+    };
+  }
+
+  factory Question.fromJson(Map<String, dynamic> json) {
+    return Question(
+      id: json['id'],
+      correctAnswer: json['correctAnswer'],
+      answerA: json['answerA'],
+      answerB: json['answerB'],
+      answerC: json['answerC'],
+      answerD: json['answerD'],
+      questionText: json['text'],
+      competition:
+          Competition.fromJson(json['competition'] as Map<String, dynamic>),
+      year: json['year'],
+      difficulty: json['difficulty'],
+    );
+  }
 }

@@ -2,13 +2,14 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
+import 'package:footix/controllers/data_cache_controller.dart';
 import 'package:footix/models/question.dart';
 import 'package:footix/controllers/question_controller.dart';
 import 'package:footix/views/components/question_card/question_card_image.dart';
 import 'package:footix/views/components/question_card/question_card_text.dart';
 import 'package:footix/views/score_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:footix/models/database.dart';
+import 'package:footix/models/firebase_service.dart';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:material_dialogs/material_dialogs.dart';
 import 'package:material_dialogs/widgets/buttons/icon_button.dart';
@@ -18,11 +19,12 @@ QuestionController questionController = QuestionController();
 int maxQuestionNum = 4;
 List<Question> answeredQuestionList = [];
 const maxSeconds = 15;
-final db = DB();
+final firebaseService = FirebaseService();
 List<Icon> scoreKeeper = [];
 CountDownController countDownController = CountDownController();
 bool isOnCompleteCounterInvoked = false;
 final _auth = FirebaseAuth.instance;
+final dataCacheController = DataCacheController();
 
 class QuestionCard extends StatefulWidget {
   String challengeID;
@@ -65,38 +67,36 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   void updateState(answerText, currentQuestion) {
-    String currentQuestionComp = currentQuestion.competition.code;
     answeredQuestionList.add(currentQuestion);
     currentQuestion.setUserAnswer(answerText);
     Future.delayed(const Duration(milliseconds: 0), () {
       // 3000?
       if (answerText == currentQuestion.getCorrectAnswer()) {
         correctAnswerActions();
-        db.appendMapValue('challenges', widget.challengeID, 'questions',
-            currentQuestion.getID().toString(), true);
+        firebaseService.appendMapValue('challenges', widget.challengeID,
+            'questions', currentQuestion.getID().toString(), true);
         if (_auth.currentUser != null) {
-          db.incrementUserCompExp(_auth.currentUser!.uid, currentQuestionComp,
-              currentQuestion.getQuestionDifficulty() * 2);
-          db.incrementMapValue('users', _auth.currentUser!.uid,
-              'answeredQuestions', currentQuestionComp, 1, 'correct');
+          firebaseService.appendToCorrectArray(
+              _auth.currentUser!.uid, currentQuestion.id.toString());
         }
       } else {
         inCorrectAnswerActions();
-        db.appendMapValue('challenges', widget.challengeID, 'questions',
-            currentQuestion.getID().toString(), false);
+        firebaseService.appendMapValue('challenges', widget.challengeID,
+            'questions', currentQuestion.getID().toString(), false);
         if (_auth.currentUser != null) {
-          db.incrementMapValue('users', _auth.currentUser!.uid,
-              'answeredQuestions', currentQuestionComp, 1, 'incorrect');
+          firebaseService.appendToIncorrectArray(
+              _auth.currentUser!.uid, currentQuestion.id.toString());
         }
       }
     });
+    dataCacheController.cacheQuestionData(currentQuestion);
     questionController.questionNum++;
   }
 
   void timesUpActions() {
     isOnCompleteCounterInvoked = false;
-    db.appendMapValue('challenges', widget.challengeID, 'questions',
-        currentQuestion!.getID().toString(), false);
+    firebaseService.appendMapValue('challenges', widget.challengeID,
+        'questions', currentQuestion!.getID().toString(), false);
     scoreKeeper.add(Icon(
       Icons.close,
       color: Colors.red,
@@ -196,9 +196,16 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   Widget build(BuildContext context) {
-    //questionController.getAllUserAnsweredQuestions();
     return isLoading
-        ? const Center(child: CircularProgressIndicator())
+        ? const Center(
+            child: SizedBox(
+            width: 70,
+            height: 70,
+            child: CircularProgressIndicator(
+              color: kMainLightColor,
+              strokeWidth: 5,
+            ),
+          ))
         : WillPopScope(
             onWillPop: () async => false,
             child: SizedBox(
@@ -383,7 +390,6 @@ class _QuestionCardState extends State<QuestionCard> {
             MaterialPageRoute(
               builder: (context) => ScoreScreen(widget.challengeID),
             ));
-        //Navigator.pushNamed(context, ScoreScreen.id);
       } else {
         currentQuestion = questionList[questionController.questionNum];
       }

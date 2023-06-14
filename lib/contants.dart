@@ -11,6 +11,7 @@ const kMainGreyColor = Color(0xff717575);
 const kMainRed = Color(0xff681922);
 const kMainDefaultPadding = 16.0;
 const kMainCardPadding = 8.0;
+const kMainLightBlue = Color(0xff1d80cf);
 
 const kWelcomeScreenTitleTextStyle = TextStyle(
     fontFamily: 'Lato',
@@ -54,9 +55,9 @@ String kTooLittleData =
     'Too little data! Complete your first challenge to access your stats!';
 
 List<Map> compMaxExpMapDebug2 = [
-  {'code': 'GB1', 'exp': 500, 'name': 'Premier League'},
-  {'code': 'L1', 'exp': 500, 'name': 'Bundesliga'},
-  {'code': 'ES1', 'exp': 500, 'name': 'La Liga'},
-  {'code': 'FR1', 'exp': 500, 'name': 'Ligue 1'},
-  {'code': 'IT1', 'exp': 500, 'name': 'Serie A'},
+  {'code': 'GB1', 'exp': 1500, 'name': 'Premier League'},
+  {'code': 'L1', 'exp': 1500, 'name': 'Bundesliga'},
+  {'code': 'ES1', 'exp': 1500, 'name': 'La Liga'},
+  {'code': 'FR1', 'exp': 1500, 'name': 'Ligue 1'},
+  {'code': 'IT1', 'exp': 1500, 'name': 'Serie A'},
 ];

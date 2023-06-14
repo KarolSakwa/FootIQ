@@ -63,7 +63,7 @@ class _QuickChallengeScreenState extends State<QuickChallengeScreen> {
   dynamic addNewChallenge() async {
     var uuid = const Uuid();
     String ID = uuid.v1();
-    db.addData(
+    firebaseService.addData(
         'challenges',
         {
           'date': FieldValue.serverTimestamp(),
