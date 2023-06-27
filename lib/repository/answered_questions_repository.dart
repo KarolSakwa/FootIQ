@@ -19,6 +19,15 @@ class AnsweredQuestionsRepository {
     return userDoc.data()?['answeredQuestions'];
   }
 
+  getUserAnsweredQuestionsList(String userId) async {
+    final answeredQuestions = await getUserAnsweredQuestions(userId);
+    var allAnsweredQuestionsList = [];
+    answeredQuestions.forEach((key, value) {
+      allAnsweredQuestionsList.addAll(value);
+    });
+    return allAnsweredQuestionsList;
+  }
+
   divideIntoCompetitions(answeredQuestions) async {
     final dividedCompetitions = {};
     for (final result in answeredQuestions.keys) {

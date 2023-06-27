@@ -36,7 +36,7 @@ class UserAnswerCorrectnessPieChart extends StatelessWidget {
               style: kWelcomeScreenTitleTextStyle.copyWith(fontSize: 14),
             )
           : PieChart(
-              centerText: answerCorrectnessPercentage.toString() + '%',
+              centerText: '$answerCorrectnessPercentage%',
               centerTextStyle: kWelcomeScreenTitleTextStyle.copyWith(
                   fontSize: 25, color: getColor(answerCorrectnessPercentage!)),
               dataMap: {

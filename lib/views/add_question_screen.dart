@@ -64,11 +64,47 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
     return areAnswersValid && isSeasonValid;
   }
 
-  addQuestionToQueue() async {
+  addQuestionToQueue(BuildContext context) async {
     var isValid = await validate();
     if (isValid) {
-      apiController.sendFormData(questionText, season, answerA, answerB,
+      await apiController.sendFormData(questionText, season, answerA, answerB,
           answerC, answerD, correctAnswer, selectedCompetition!.id);
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: Colors.greenAccent, // Tło zielone
+            title: Row(
+              children: [
+                Icon(Icons.check_circle,
+                    color: Colors.black), // Ikona potwierdzenia
+                SizedBox(width: 8),
+                Text(
+                  'Success',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+            content: const Text(
+              'Your question has been added to the queue!',
+              style: TextStyle(color: Colors.black),
+            ),
+            actions: [
+              TextButton(
+                child: Text(
+                  'OK',
+                  style: TextStyle(color: Colors.black),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -298,7 +334,7 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
                   kMainMediumColor,
                 ),
               ),
-              onPressed: addQuestionToQueue,
+              onPressed: () => addQuestionToQueue(context),
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 18, horizontal: 105),
                 child: Text(

@@ -12,7 +12,7 @@ import 'dart:math';
 
 class FirebaseService {
   final firestoreInstance = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
+  final auth = FirebaseAuth.instance;
   APIController apiController = APIController();
 
   /// Returns list of items in given collection
@@ -447,7 +447,7 @@ class FirebaseService {
   /// Returns correct and incorrect answers number for a given competition or in total if the argument is not passed
   Future<Map> getCompAnswerCorrectness([String? competitionCode]) async {
     var answeredQuestions =
-        await getCollectionDataField('users', 'ID', _auth.currentUser!.uid);
+        await getCollectionDataField('users', 'ID', auth.currentUser!.uid);
     return answeredQuestions['answeredQuestions'];
   }
 
@@ -471,7 +471,7 @@ class FirebaseService {
 
   /// Returns total number of given user's exp points
   getUserTotalExp([String? userID]) async {
-    String ID = userID ?? _auth.currentUser!.uid;
+    String ID = userID ?? auth.currentUser!.uid;
     Map allUserAnsweredQuestions = await getUserAnsweredQuestions(ID);
 
     List answeredCorrectly = [];

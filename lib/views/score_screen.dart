@@ -37,97 +37,99 @@ class _ScoreScreenState extends State<ScoreScreen> {
         widget._auth.currentUser == null ? MainScreen.id : ProfileScreen.id;
 
     return FutureBuilder(
-        future: widget.firebaseService
-            .getFieldData('challenges', widget.challengeID, 'questions'),
-        builder: (BuildContext context, AsyncSnapshot result) {
-          int correctAnswersNum = getCorrectAnswersNum(result.data);
-          return WillPopScope(
-            onWillPop: () async => false,
-            child: SafeArea(
-              child: Scaffold(
-                body: Column(
-                  children: [
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    Center(
-                      child: Text(
-                        'The challenge is over!',
-                        style:
-                            kWelcomeScreenTitleTextStyle.copyWith(fontSize: 30),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    const Text(
-                      "Answer correctness",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                    ),
-                    SizedBox(
-                        width: 300,
-                        height: 300,
-                        child: UserAnswerCorrectnessPieChart(
-                            correctAnswers: correctAnswersNum,
-                            incorrectAnswers:
-                                result.data.length - correctAnswersNum)),
-                    TextButton(
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all<Color>(kMainMediumColor),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12.0, horizontal: 80.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Text(
-                              'New challenge',
-                              style: TextStyle(
-                                  fontSize: 20.0, color: kMainLightColor),
-                            ),
-                          ],
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.pushNamed(context, QuickChallengeScreen.id);
-                      },
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    MaterialButton(
-                      height: 50.0,
-                      minWidth: 300.0,
-                      color: kMainGreyColor,
-                      textColor: kMainLightColor,
-                      child: Text(
-                        'Go back',
-                        style:
-                            kWelcomeScreenTitleTextStyle.copyWith(fontSize: 20),
-                      ),
-                      onPressed: () {
-                        Navigator.pushNamed(context, goBackDirection);
-                      },
-                    )
-                  ],
-                ),
+      future: widget.firebaseService
+          .getFieldData('challenges', widget.challengeID, 'questions'),
+      builder: (BuildContext context, AsyncSnapshot result) {
+        int correctAnswersNum = getCorrectAnswersNum(result.data);
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text("Back"),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pushNamed(context, goBackDirection);
+                },
               ),
             ),
-          );
-        });
+            body: Column(
+              children: [
+                const SizedBox(
+                  height: 20,
+                ),
+                Center(
+                  child: Text(
+                    'Challenge completed!',
+                    style: kWelcomeScreenTitleTextStyle.copyWith(fontSize: 30),
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                const Text(
+                  "Answer correctness",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16),
+                ),
+                SizedBox(
+                  width: 300,
+                  height: 300,
+                  child: UserAnswerCorrectnessPieChart(
+                    correctAnswers: correctAnswersNum,
+                    incorrectAnswers: result.data.length - correctAnswersNum,
+                  ),
+                ),
+                TextButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(kMainMediumColor),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12.0,
+                      horizontal: 80.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text(
+                          'New challenge',
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            color: kMainLightColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, QuickChallengeScreen.id);
+                  },
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  getCorrectAnswersNum(Map questionsList) {
+  getCorrectAnswersNum(Map? questionsList) {
     int correctNum = 0;
-    for (var i = 0; i < questionsList.keys.toList().length; i++) {
-      if (questionsList[questionsList.keys.toList()[i]] == true) {
-        correctNum++;
+    if (questionsList != null) {
+      for (var i = 0; i < questionsList.keys.toList().length; i++) {
+        if (questionsList[questionsList.keys.toList()[i]] == true) {
+          correctNum++;
+        }
       }
     }
     return correctNum;

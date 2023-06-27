@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:footix/models/competition.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -9,20 +7,12 @@ import 'dart:convert';
 import '../models/question.dart';
 
 class APIController {
-  static const String baseURL = 'http://10.0.2.2:8000';
-  static final APIController _instance = APIController._internal();
-  final GlobalKey<NavigatorState> navigatorKey;
-
-  factory APIController() {
-    return _instance;
-  }
-
-  APIController._internal() : navigatorKey = GlobalKey<NavigatorState>();
+  var baseURL = 'http://10.0.2.2:8000';
 
   getQuestion(int questionId) async {
     var url = Uri.parse('$baseURL/question/$questionId');
     try {
-      var questionData = jsonDecode(await _get(url));
+      var questionData = jsonDecode(await get(url));
       var competition = await getCompetition(questionData['competition']);
 
       Question question = Question(
@@ -47,7 +37,7 @@ class APIController {
   getCompetition(int competitionId) async {
     var url = Uri.parse('$baseURL/competition/$competitionId');
     try {
-      var competitionData = jsonDecode(await _get(url));
+      var competitionData = jsonDecode(await get(url));
 
       Competition competition = Competition(
           id: competitionData['id'],
@@ -66,7 +56,7 @@ class APIController {
   getCompetitions() async {
     var url = Uri.parse('$baseURL/competitions');
     try {
-      var competitionData = jsonDecode(await _get(url));
+      var competitionData = jsonDecode(await get(url));
       var competitionList = [];
       for (var i = 0; i < competitionData.toList().length; i++) {
         Competition competition = Competition(
@@ -88,7 +78,7 @@ class APIController {
   getCompetitionNames() async {
     var url = Uri.parse('$baseURL/competitions/names');
     try {
-      var competitionNames = jsonDecode(await _get(url));
+      var competitionNames = jsonDecode(await get(url));
       List<String> names = List<String>.from(competitionNames as List);
       return names;
     } catch (e) {
@@ -100,7 +90,7 @@ class APIController {
   getCompetitionsMaxExp() async {
     var url = Uri.parse('$baseURL/competitions/maxexp');
     try {
-      var competitionMaxExp = jsonDecode(await _get(url));
+      var competitionMaxExp = jsonDecode(await get(url));
       return competitionMaxExp;
     } catch (e) {
       print('Error getting max competition exp: ${e.toString()}');
@@ -111,7 +101,7 @@ class APIController {
   getQuestionsCount() async {
     var url = Uri.parse('$baseURL/questions/count');
     try {
-      var responseBody = await _get(url);
+      var responseBody = await get(url);
       return jsonDecode(responseBody);
     } catch (e) {
       print('Error getting questions count: ${e.toString()}');
@@ -119,7 +109,18 @@ class APIController {
     }
   }
 
-  Future<String> _get(Uri url) async {
+  getQuestionIds() async {
+    var url = Uri.parse('$baseURL/questions/ids');
+    try {
+      var responseBody = await get(url);
+      return jsonDecode(responseBody);
+    } catch (e) {
+      print('Error getting question ids: ${e.toString()}');
+      return null;
+    }
+  }
+
+  Future<String> get(Uri url) async {
     try {
       var response = await http.get(url);
       return response.body;
@@ -138,8 +139,7 @@ class APIController {
     String correctAnswer,
     int competitionID,
   ) async {
-    print(navigatorKey.currentContext);
-    var url = Uri.parse('$baseURL/add_question');
+    var url = Uri.parse('$baseURL/add-user-question');
 
     try {
       Map<String, dynamic> requestData = {
@@ -164,24 +164,6 @@ class APIController {
 
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
-
-        // Mostrar mensaje de éxito al usuario
-        showDialog(
-          context: navigatorKey.currentContext!,
-          builder: (context) => AlertDialog(
-            title: Text('Información'),
-            content:
-                Text('¡Su pregunta ha sido agregada exitosamente a la cola!'),
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('OK'),
-              ),
-            ],
-          ),
-        );
       } else {
         print('Error sending form data: ${response.statusCode}');
       }

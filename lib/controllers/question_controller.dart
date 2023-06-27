@@ -1,12 +1,15 @@
+import 'dart:math';
+
 import 'package:footix/controllers/api_controller.dart';
 import 'package:footix/models/question.dart';
+import 'package:footix/repository/answered_questions_repository.dart';
 import '../models/firebase_service.dart';
 import 'data_cache_controller.dart';
 
 class QuestionController {
   int questionNum = 0; // question counter
   int questionListLength = 50;
-  final firebaseService = FirebaseService();
+  var firebaseService = FirebaseService();
   APIController apiController = APIController();
   DataCacheController dataCacheController = DataCacheController();
 
@@ -29,17 +32,19 @@ class QuestionController {
     int questionSetSize = 5;
     List<Question> questionList = [];
 
-    int currentIndex = 0;
     int unsuccessfulAttempts = 0;
     int maxAttempts = 100;
 
     while (questionList.length < questionSetSize) {
-      var question = await dataCacheController.getQuestionData(currentIndex);
+      var questionId =
+          await getNextQuestionID(); // Używamy metody getNextQuestion() zamiast currentIndex
+
+      var question = await dataCacheController.getQuestionData(questionId);
       if (question != null) {
         questionList.add(question);
         unsuccessfulAttempts = 0; // Reset the counter
       } else {
-        question = await apiController.getQuestion(currentIndex);
+        question = await apiController.getQuestion(questionId);
         if (question != null) {
           await dataCacheController.cacheQuestionData(question);
           questionList.add(question);
@@ -47,14 +52,13 @@ class QuestionController {
         } else {
           unsuccessfulAttempts++;
           print(
-              'Unsuccessful attempt $unsuccessfulAttempts to retrieve question $currentIndex');
+              'Unsuccessful attempt $unsuccessfulAttempts to retrieve question $questionId');
           if (unsuccessfulAttempts >= maxAttempts) {
             print('Reached the maximum number of unsuccessful attempts');
-            break; // Exit the loop
+            break;
           }
         }
       }
-      currentIndex++;
     }
 
     return questionList;
@@ -76,20 +80,35 @@ class QuestionController {
     return question;
   }
 
-  getAllUserAnsweredQuestions() async {
-    var test = await firebaseService.getCollectionDataField(
-        'challenges', 'user', '1r6NTNyxoffkZTHqP7FGUcdP2eC2', true);
-    var allAnsweredQuestionsMap = {};
-    for (var i = 0; i < test.length; i++) {
-      var currentChallengeQuestions = test[i]['questions'];
-      if (currentChallengeQuestions.length > 0) {
-        for (var j = 0; j < currentChallengeQuestions.length; j++) {
-          allAnsweredQuestionsMap[currentChallengeQuestions.keys.toList()[j]] =
-              currentChallengeQuestions[
-                  currentChallengeQuestions.keys.toList()[j]];
-        }
+  Future<int> getNextQuestionID() async {
+    var questionIds = await apiController.getQuestionIds();
+    var answeredQuestionRepository = AnsweredQuestionsRepository();
+    var answeredQuestions = await answeredQuestionRepository
+        .getUserAnsweredQuestionsList(firebaseService.auth.currentUser!.uid);
+
+    var questionFrequency = {};
+    questionIds.forEach((questionId) {
+      if (!answeredQuestions.contains(questionId)) {
+        questionFrequency[questionId] =
+            (questionFrequency[questionId] ?? 0) + 1;
       }
+    });
+
+    var leastFrequentQuestions = [];
+    var leastFrequency = questionFrequency.values
+        .reduce((min, value) => value < min ? value : min);
+    questionFrequency.forEach((questionId, frequency) {
+      if (frequency == leastFrequency) {
+        leastFrequentQuestions.add(questionId);
+      }
+    });
+
+    if (leastFrequentQuestions.isNotEmpty) {
+      var random = Random();
+      var randomQuestionIndex = random.nextInt(leastFrequentQuestions.length);
+      return leastFrequentQuestions[randomQuestionIndex];
     }
-    return allAnsweredQuestionsMap;
+
+    return -1;
   }
 }

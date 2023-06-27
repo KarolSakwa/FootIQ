@@ -38,7 +38,7 @@ class QuestionCard extends StatefulWidget {
 
 class _QuestionCardState extends State<QuestionCard> {
   late Question? currentQuestion;
-  late List<Question> questionList;
+  late List<Question> questionSet;
   bool isLoading = true;
   ButtonStyle initialButtonStyle = ButtonStyle(
     foregroundColor: MaterialStateProperty.all<Color>(kMainLightColor),
@@ -59,8 +59,8 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   void loadQuestion() async {
-    questionList = await questionController.getQuestionSet();
-    currentQuestion = questionList.first;
+    questionSet = await questionController.getQuestionSet();
+    currentQuestion = questionSet.first;
     setState(() {
       isLoading = false;
     });
@@ -73,20 +73,8 @@ class _QuestionCardState extends State<QuestionCard> {
       // 3000?
       if (answerText == currentQuestion.getCorrectAnswer()) {
         correctAnswerActions();
-        firebaseService.appendMapValue('challenges', widget.challengeID,
-            'questions', currentQuestion.getID().toString(), true);
-        if (_auth.currentUser != null) {
-          firebaseService.appendToCorrectArray(
-              _auth.currentUser!.uid, currentQuestion.id.toString());
-        }
       } else {
         inCorrectAnswerActions();
-        firebaseService.appendMapValue('challenges', widget.challengeID,
-            'questions', currentQuestion.getID().toString(), false);
-        if (_auth.currentUser != null) {
-          firebaseService.appendToIncorrectArray(
-              _auth.currentUser!.uid, currentQuestion.id.toString());
-        }
       }
     });
     dataCacheController.cacheQuestionData(currentQuestion);
@@ -129,6 +117,12 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   void correctAnswerActions() {
+    firebaseService.appendMapValue('challenges', widget.challengeID,
+        'questions', currentQuestion!.getID().toString(), true);
+    if (_auth.currentUser != null) {
+      firebaseService.appendToCorrectArray(
+          _auth.currentUser!.uid, currentQuestion!.id.toString());
+    }
     isOnCompleteCounterInvoked = false;
     countDownController.pause();
     scoreKeeper.add(Icon(
@@ -162,6 +156,12 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   void inCorrectAnswerActions() {
+    firebaseService.appendMapValue('challenges', widget.challengeID,
+        'questions', currentQuestion!.getID().toString(), false);
+    if (_auth.currentUser != null) {
+      firebaseService.appendToIncorrectArray(
+          _auth.currentUser!.uid, currentQuestion!.id.toString());
+    }
     isOnCompleteCounterInvoked = false;
     countDownController.pause();
     scoreKeeper.add(Icon(
@@ -391,7 +391,7 @@ class _QuestionCardState extends State<QuestionCard> {
               builder: (context) => ScoreScreen(widget.challengeID),
             ));
       } else {
-        currentQuestion = questionList[questionController.questionNum];
+        currentQuestion = questionSet[questionController.questionNum];
       }
     });
     if (questionController.questionNum > maxQuestionNum) {
