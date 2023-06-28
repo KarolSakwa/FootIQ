@@ -107,4 +107,19 @@ class AnsweredQuestionsRepository {
 
     return totalExp;
   }
+
+  Future<int> getAnswerCountForQuestion(String userId, int questionId) async {
+    final answeredQuestions = await getUserAnsweredQuestions(userId);
+    int count = 0;
+
+    for (final result in answeredQuestions.keys.toList()) {
+      for (final answeredQuestionId in answeredQuestions[result]) {
+        if (int.parse(answeredQuestionId) == questionId) {
+          count++;
+        }
+      }
+    }
+
+    return count;
+  }
 }

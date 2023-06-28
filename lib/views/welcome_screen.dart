@@ -117,13 +117,10 @@ class WelcomeScreen extends StatelessWidget {
               const SizedBox(
                 height: 20,
               ),
-              InkWell(
-                onTap: () =>
+              TextButton(
+                onPressed: () =>
                     Navigator.pushNamed(context, RegistrationScreen.id),
-                child: const Text(
-                  "Don't have an account? Register here!",
-                  style: TextStyle(color: Colors.white),
-                ),
+                child: Text("Don't have an account? Register here!"),
               ),
               // Center(
               //   child: Padding(

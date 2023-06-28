@@ -23,6 +23,8 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   void initState() {
     super.initState();
     Firebase.initializeApp();
@@ -48,263 +50,195 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         backgroundColor: const Color(0xFF0B1724FF),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-              child: Center(
-                child: Container(
-                  child: kWelcomeScreenTitleText,
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-              child: TextField(
-                style: TextStyle(color: kMainLightColor),
-                cursorColor: kMainLightColor,
-                decoration: const InputDecoration(
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: kMainLightColor, width: 1),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: Center(
+                  child: Container(
+                    child: kWelcomeScreenTitleText,
                   ),
-                  hintStyle: TextStyle(color: kMainLightColor),
-                  border: OutlineInputBorder(),
-                  labelText: 'Email',
-                  labelStyle: TextStyle(color: kMainLightColor),
-                  hintText: 'Enter valid email, e.g. abc@mail.com',
                 ),
-                onChanged: (value) {
-                  email = value;
-                },
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 15, left: 15, right: 15),
-              child: TextField(
-                style: const TextStyle(color: kMainLightColor),
-                cursorColor: kMainLightColor,
-                decoration: const InputDecoration(
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: kMainLightColor, width: 1),
-                  ),
-                  hintStyle: TextStyle(color: kMainLightColor),
-                  border: OutlineInputBorder(),
-                  labelText: 'Display name',
-                  labelStyle: TextStyle(color: kMainLightColor),
-                  hintText: 'Enter your public username',
-                ),
-                onChanged: (value) {
-                  username = value;
-                },
+              const SizedBox(
+                height: 20,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints.tightFor(height: 60),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      showCountryPicker(
-                        context: context,
-                        showWorldWide: false,
-                        onSelect: (Country country) {
-                          setState(() {
-                            widget.nationality = country.name;
-                          });
-                        },
-                        countryListTheme: CountryListThemeData(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(40.0),
-                            topRight: Radius.circular(40.0),
-                          ),
-                          inputDecoration: InputDecoration(
-                            labelText: 'Search',
-                            hintText: 'Start typing to search',
-                            prefixIcon: const Icon(Icons.search),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Colors.red.withOpacity(0.2),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          widget.nationality,
-                          style: const TextStyle(
-                              color: kMainLightColor, fontSize: 14),
-                        ),
-                        const Icon(
-                          Icons.arrow_drop_down_circle_outlined,
-                        ),
-                      ],
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                child: TextFormField(
+                  style: TextStyle(color: kMainLightColor),
+                  cursorColor: kMainLightColor,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: kMainLightColor, width: 1),
                     ),
-                    style: ButtonStyle(
-                      side: MaterialStateProperty.all<BorderSide>(
-                        const BorderSide(
-                          width: 1.0,
-                          color: kMainLightColor,
-                        ),
+                    hintStyle: TextStyle(color: kMainLightColor),
+                    border: OutlineInputBorder(),
+                    labelText: 'Email',
+                    labelStyle: TextStyle(color: kMainLightColor),
+                    hintText: 'Enter valid email, e.g. abc@mail.com',
+                  ),
+                  onChanged: (value) {
+                    email = value;
+                  },
+                  validator: (value) {
+                    if (value!.isEmpty ||
+                        !value.contains('@') ||
+                        !value.contains('.')) {
+                      return 'Please enter a valid email address.';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15),
+                child: TextFormField(
+                  style: const TextStyle(color: kMainLightColor),
+                  cursorColor: kMainLightColor,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: kMainLightColor, width: 1),
+                    ),
+                    hintStyle: TextStyle(color: kMainLightColor),
+                    border: OutlineInputBorder(),
+                    labelText: 'Display name',
+                    labelStyle: TextStyle(color: kMainLightColor),
+                    hintText: 'Enter your public username',
+                  ),
+                  onChanged: (value) {
+                    username = value;
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 15.0,
+                  right: 15.0,
+                  top: 15,
+                  bottom: 0,
+                ),
+                child: TextFormField(
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: kMainLightColor, width: 1),
+                    ),
+                    hintStyle: TextStyle(color: kMainLightColor),
+                    border: OutlineInputBorder(),
+                    labelText: 'Password',
+                    labelStyle: TextStyle(color: kMainLightColor),
+                    hintText: 'Enter secure password',
+                  ),
+                  onChanged: (value) {
+                    password = value;
+                  },
+                  validator: (value) {
+                    if (value!.length < 6) {
+                      return 'Password must be at least 6 characters long.';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 15.0,
+                  right: 15.0,
+                  top: 15,
+                  bottom: 0,
+                ),
+                child: TextFormField(
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: kMainLightColor, width: 1),
+                    ),
+                    hintStyle: TextStyle(color: kMainLightColor),
+                    border: OutlineInputBorder(),
+                    labelText: 'Confirm password',
+                    labelStyle: TextStyle(color: kMainLightColor),
+                    hintText: 'Repeat password',
+                  ),
+                  onChanged: (value) {
+                    confirmPassword = value;
+                  },
+                  validator: (value) {
+                    if (value != password) {
+                      return 'Passwords do not match.';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              FlatButton(
+                onPressed: () {
+                  //TODO FORGOT PASSWORD SCREEN GOES HERE
+                },
+                child: InkWell(
+                  onTap: () => Navigator.pushNamed(context, LoginScreen.id),
+                  child: const Text(
+                    'Already have an account? Log in here!',
+                    style: TextStyle(color: Colors.blue, fontSize: 15),
+                  ),
+                ),
+              ),
+              TextButton(
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(kMainMediumColor),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 18.0,
+                    horizontal: 105.0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text(
+                        'Register',
+                        style:
+                            TextStyle(fontSize: 20.0, color: kMainLightColor),
                       ),
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(kMainDarkColor),
-                    ),
+                    ],
                   ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 15.0,
-                right: 15.0,
-                top: 15,
-                bottom: 0,
-              ),
-              child: TextFormField(
-                obscureText: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: kMainLightColor, width: 1),
-                  ),
-                  hintStyle: TextStyle(color: kMainLightColor),
-                  border: OutlineInputBorder(),
-                  labelText: 'Password',
-                  labelStyle: TextStyle(color: kMainLightColor),
-                  hintText: 'Enter secure password',
-                ),
-                onChanged: (value) {
-                  password = value;
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 15.0,
-                right: 15.0,
-                top: 15,
-                bottom: 0,
-              ),
-              child: TextFormField(
-                obscureText: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: kMainLightColor, width: 1),
-                  ),
-                  hintStyle: TextStyle(color: kMainLightColor),
-                  border: OutlineInputBorder(),
-                  labelText: 'Confirm password',
-                  labelStyle: TextStyle(color: kMainLightColor),
-                  hintText: 'Repeat password',
-                ),
-                onChanged: (value) {
-                  confirmPassword = value;
-                },
-              ),
-            ),
-            FlatButton(
-              onPressed: () {
-                //TODO FORGOT PASSWORD SCREEN GOES HERE
-              },
-              child: InkWell(
-                onTap: () => Navigator.pushNamed(context, LoginScreen.id),
-                child: const Text(
-                  'Already have an account? Log in here!',
-                  style: TextStyle(color: Colors.blue, fontSize: 15),
-                ),
-              ),
-            ),
-            TextButton(
-              style: ButtonStyle(
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(kMainMediumColor),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 18.0,
-                  horizontal: 105.0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Text(
-                      'Register',
-                      style: TextStyle(fontSize: 20.0, color: kMainLightColor),
-                    ),
-                  ],
-                ),
-              ),
-              onPressed: () async {
-                if (password.length < 6) {
-                  showPasswordLengthError();
-                  return;
-                }
-
-                if (password != confirmPassword) {
-                  showPasswordMismatchError();
-                  return;
-                }
-
-                try {
-                  final newUser = await _auth
-                      .createUserWithEmailAndPassword(
-                        email: email,
-                        password: password,
-                      )
-                      .then(
-                        (value) => value.user!.updateDisplayName(username),
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    try {
+                      final newUser = await _auth
+                          .createUserWithEmailAndPassword(
+                            email: email,
+                            password: password,
+                          )
+                          .then(
+                            (value) => value.user!.updateDisplayName(username),
+                          );
+                      widget.firebaseService.addData(
+                        'users',
+                        {
+                          'email': email,
+                          'name': username,
+                          'answeredQuestions': {},
+                          'ID': _auth.currentUser!.uid,
+                        },
+                        id: _auth.currentUser!.uid,
                       );
-                  widget.firebaseService.addData(
-                    'users',
-                    {
-                      'email': email,
-                      'name': username,
-                      'answeredQuestions': {},
-                      'ID': _auth.currentUser!.uid,
-                    },
-                    id: _auth.currentUser!.uid,
-                  );
-                  Navigator.pushNamed(context, ProfileScreen.id);
-                } catch (e) {
-                  print(e);
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void showPasswordLengthError() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: kMainLightColor,
-        content: Text(
-          'Password must be at least 6 characters long.',
-          style: kQuestionTextStyle,
-        ),
-      ),
-    );
-  }
-
-  void showPasswordMismatchError() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: kMainLightColor,
-        content: Text(
-          'Passwords do not match.',
-          style: kQuestionTextStyle,
+                      Navigator.pushNamed(context, ProfileScreen.id);
+                    } catch (e) {
+                      print(e);
+                    }
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

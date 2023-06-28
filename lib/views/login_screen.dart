@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:footix/contants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:footix/views/dashboard/profile_screen.dart';
+import 'package:footix/views/registration_screen.dart';
 import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -144,9 +145,13 @@ class _LoginScreenState extends State<LoginScreen> {
               },
             ),
             SizedBox(
-              height: 130,
+              height: 10,
             ),
-            Text('New User? Create Account'),
+            TextButton(
+              onPressed: () =>
+                  Navigator.pushNamed(context, RegistrationScreen.id),
+              child: Text('New user? Create account!'),
+            ),
           ],
         ),
       ),

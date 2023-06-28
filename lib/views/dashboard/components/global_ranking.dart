@@ -36,7 +36,7 @@ class GlobalRanking extends StatelessWidget {
 
           return ScrollablePositionedList.builder(
             initialScrollIndex: (myRanking - startIndex).toInt(),
-            itemCount: endIndex - startIndex + 1,
+            itemCount: (endIndex - startIndex + 1).toInt(),
             itemBuilder: (_, int position) {
               final rankingIndex = (position + startIndex).toInt();
               if (rankingIndex >= rankingData.length) {

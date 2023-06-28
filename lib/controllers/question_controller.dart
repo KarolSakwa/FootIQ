@@ -89,8 +89,11 @@ class QuestionController {
     var questionFrequency = {};
     questionIds.forEach((questionId) {
       if (!answeredQuestions.contains(questionId)) {
+        var userAnswerCount =
+            answeredQuestionRepository.getAnswerCountForQuestion(
+                firebaseService.auth.currentUser!.uid, questionId);
         questionFrequency[questionId] =
-            (questionFrequency[questionId] ?? 0) + 1;
+            (questionFrequency[questionId] ?? 0) + userAnswerCount;
       }
     });
 
